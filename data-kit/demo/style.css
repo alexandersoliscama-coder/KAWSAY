@@ -1,0 +1,13 @@
+body { margin: 0; background: #f5f7fa; color: #16202a; font-family: system-ui, sans-serif; }
+header { background: #16202a; color: white; padding: 1rem max(1rem, calc((100% - 46rem) / 2)); display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
+header strong { letter-spacing: .1em; }
+nav { max-width: 46rem; margin: 1rem auto; display: flex; gap: .5rem; padding: 0 1rem; }
+button, input, select { font: inherit; }
+button { border: 1px solid #8a99a8; border-radius: .5rem; padding: .5rem .75rem; cursor: pointer; background: white; }
+nav button[aria-pressed="true"] { background: #16202a; color: white; }
+pre { padding: 1rem; background: #eaf0f5; overflow: auto; border-radius: .5rem; font-size: .85rem; }
+.scenes, .controls { display: flex; gap: .5rem; flex-wrap: wrap; margin: 1rem 0; }
+.controls label { display: flex; flex-direction: column; gap: .25rem; }
+.controls input { max-width: 9rem; }
+.controls input, .controls select { padding: .5rem; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible { outline: 3px solid #1d4f91; outline-offset: 3px; }
