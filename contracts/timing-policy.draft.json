@@ -1,0 +1,14 @@
+{
+  "policy_version": "draft-1",
+  "missing_after_seconds": {
+    "hr": null,
+    "rr": null,
+    "spo2": null,
+    "sbp": null,
+    "dbp": null,
+    "temp": null,
+    "consciousness": null,
+    "on_oxygen": null
+  },
+  "grouping_window_seconds": null
+}

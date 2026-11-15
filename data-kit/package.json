@@ -1,0 +1,40 @@
+{
+  "name": "@kawsay/data-kit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Synthetic mission data adapters and the recovered local check-in module",
+  "scripts": {
+    "test": "vitest run",
+    "test:model": "node scripts/checkin-smoke.mjs",
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "preview": "node scripts/serve.mjs",
+    "build:api": "node scripts/build-api.mjs",
+    "api": "node --env-file-if-exists=.env .api-dist/start.mjs",
+    "db:migrate": "node --env-file-if-exists=.env scripts/database.mjs migrate",
+    "db:seed-demo": "node --env-file-if-exists=.env scripts/database.mjs seed-demo",
+    "send:demo": "node --env-file-if-exists=.env scripts/send-observations.mjs",
+    "demo": "node .api-dist/demo.mjs"
+  },
+  "dependencies": {
+    "pg": "8.23.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.16",
+    "@testing-library/react": "16.3.2",
+    "@types/node": "24.13.2",
+    "@types/pg": "8.23.1",
+    "@types/react": "19.2.14",
+    "@types/react-dom": "19.2.3",
+    "esbuild": "0.25.12",
+    "jsdom": "29.1.1",
+    "typescript": "5.9.3",
+    "vitest": "4.1.9"
+  },
+  "engines": {
+    "node": ">=24.13"
+  }
+}

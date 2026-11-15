@@ -1,0 +1,46 @@
+name: Data and generator checks
+on:
+  push:
+    branches: ['Datos-|-GENERADOR']
+  pull_request:
+    branches: ['Datos-|-GENERADOR', 'Integración']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  data:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Generator behaviour
+        run: python -m unittest discover -s data-gen -v
+      - name: Verify committed datasets and manifest
+        run: python data-gen/generate.py --check
+      - name: Monitor behaviour
+        run: python -m unittest discover -s llm-service -v
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: data-kit/package-lock.json
+      - name: Install data module
+        working-directory: data-kit
+        run: npm ci
+      - name: Test check-in and integration
+        working-directory: data-kit
+        run: npm test
+      - name: Type check
+        working-directory: data-kit
+        run: npm run typecheck
+      - name: Build data preview
+        working-directory: data-kit
+        run: npm run build
+      - name: Build ingestion API
+        working-directory: data-kit
+        run: npm run build:api

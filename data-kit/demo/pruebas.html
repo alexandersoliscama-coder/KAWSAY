@@ -1,0 +1,28 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>KAWSAY · Laboratorio local</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#edf3f5;color:#183344;font:16px system-ui}header{padding:24px;background:#102e3b;color:white}main{max-width:1080px;margin:auto;padding:24px}h1{margin:0;font-size:26px}a{color:#116965}header a{color:#7ee5c9}p{line-height:1.6}.notice{background:#fff0cc;padding:14px;border-radius:12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}section{background:white;border-radius:14px;padding:20px;min-width:0}button,select{font:inherit;border:1px solid #a6c0c3;border-radius:8px;padding:11px;margin:4px;cursor:pointer}button{background:#e1f5ed}button:disabled{opacity:.5}textarea{width:100%;min-height:400px;resize:vertical;font:12px monospace;border:1px solid #a6c0c3;border-radius:8px;padding:12px}pre{background:#132d39;color:#dcf6ef;padding:16px;border-radius:10px;white-space:pre-wrap;overflow-wrap:anywhere;min-height:150px}label{display:block;margin:12px 0}#status{font-weight:700}small{display:block;color:#536c78}button:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid #d8952b;outline-offset:3px}@media(max-width:700px){main{padding:12px}.grid{grid-template-columns:1fr}section{padding:14px}h1{font-size:22px}}
+</style></head><body><header><h1>KAWSAY · Laboratorio local</h1><p>Recepción de datos y persistencia SQL</p><a href="/">Ver panel de astronauta y médico</a></header><main>
+<p class="notice">Solo datos ficticios. Base PostgreSQL embebida en esta PC; no es el servidor PostgreSQL externo. El laboratorio está separado del panel y de los casos del Excel. Ollama no está iniciado aquí.</p>
+<div class="grid"><section><h2>1. Prepara un envío</h2>
+<button id="individual">Cargar individual</button><button id="group">Cargar grupal</button>
+<button id="fresh">Asignar IDs nuevos</button><button id="invalid">Introducir unidad incorrecta</button>
+<p>Edita el JSON o carga un ejemplo. Volver a enviar el mismo paquete debe devolver un duplicado sin agregar filas.</p>
+<label for="payload">Paquete JSON</label><textarea id="payload" spellcheck="false"></textarea>
+<button id="send">Enviar a la base local</button><p id="status" role="status"></p>
+</section><section><h2>2. Comprueba qué ocurrió</h2><pre id="result" aria-live="polite">Sin envíos en esta sesión.</pre>
+<h2>3. Consulta el historial</h2><label>Tripulante<select id="member"><option value="MEMBER-01">Tripulante demo 1</option><option value="MEMBER-02">Tripulante demo 2</option></select></label>
+<button id="history">Consultar últimas 50 observaciones</button><pre id="records">Sin consulta.</pre>
+<small>Reloj de prueba: simulation:SIM-01. Los datos permanecen al reiniciar el servidor. La opción de IDs nuevos conserva las horas originales del ejemplo: crea otro envío de prueba, no una medición actual.</small></section></div>
+<h2>Pruebas sugeridas</h2><ol><li>Cargar individual y enviar: 201, ocho observaciones nuevas.</li><li>Repetir sin editar: 200, duplicate=true y cero inserciones.</li><li>Cargar grupal y enviar: incorpora al segundo tripulante; conserva las lecturas repetidas.</li><li>Cambiar un valor del individual manteniendo sus IDs: 409, conflicto.</li><li>Introducir unidad incorrecta: 422, paquete rechazado.</li><li>Consultar historial y comprobar identidad, horas y datos ausentes.</li></ol>
+<p>Si ya hiciste estas pruebas, usa IDs nuevos para iniciar otro paquete. No se borran datos automáticamente.</p>
+</main><script>
+const $=id=>document.getElementById(id),buttons=[...document.querySelectorAll('button')];
+async function load(name){try{const r=await fetch('/examples/'+name+'.json');if(!r.ok)throw Error('No se pudo cargar el ejemplo');$('payload').value=JSON.stringify(await r.json(),null,2);$('status').textContent='Ejemplo cargado: '+name;}catch(e){$('status').textContent=e.message;}}
+$('individual').onclick=()=>load('individual');$('group').onclick=()=>load('group');
+$('fresh').onclick=()=>{try{const p=JSON.parse($('payload').value),id=crypto.randomUUID();p.message_id='msg-'+id;p.subjects.forEach((s,i)=>s.observations.forEach((o,j)=>o.observation_id=id+'-'+i+'-'+j));$('payload').value=JSON.stringify(p,null,2);$('status').textContent='Identificadores renovados; horas del ejemplo conservadas.';}catch(e){$('status').textContent='JSON inválido: '+e.message;}};
+$('invalid').onclick=()=>{try{const p=JSON.parse($('payload').value);p.subjects[0].observations[0].unit='unidad_incorrecta';$('payload').value=JSON.stringify(p,null,2);}catch(e){$('status').textContent='Carga primero un ejemplo válido.';}};
+async function action(work){buttons.forEach(b=>b.disabled=true);try{await work();}catch(e){$('status').textContent='Error: '+e.message;}finally{buttons.forEach(b=>b.disabled=false);}}
+$('send').onclick=()=>action(async()=>{const p=JSON.parse($('payload').value);const r=await fetch('/demo-api/api/v1/observations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(p)});const data=await r.json();$('result').textContent=JSON.stringify(data,null,2);$('status').textContent='HTTP '+r.status+(r.ok?' · Operación confirmada':' · No guardado');});
+$('history').onclick=()=>action(async()=>{const r=await fetch('/demo-api/api/v1/crew-members/'+encodeURIComponent($('member').value)+'/observations?clock_key=simulation%3ASIM-01&limit=50');$('records').textContent=JSON.stringify(await r.json(),null,2);$('status').textContent='Consulta HTTP '+r.status;});
+load('individual');
+</script></body></html>
