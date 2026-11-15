@@ -1,0 +1,5 @@
+{
+  "inicioMision": "2028-01-01T00:00:00Z",
+  "rutaVitals": "app/public/data/vitals.json",
+  "simulationRunId": "SIM-01"
+}
