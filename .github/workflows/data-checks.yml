@@ -3,7 +3,7 @@ on:
   push:
     branches: ['Datos-|-GENERADOR']
   pull_request:
-    branches: ['Datos-|-GENERADOR', 'Integración']
+    branches: ['Datos-|-GENERADOR', 'Integración', 'main']
   workflow_dispatch:
 permissions:
   contents: read
@@ -22,6 +22,8 @@ jobs:
         run: python -m unittest discover -s data-gen -v
       - name: Verify committed datasets and manifest
         run: python data-gen/generate.py --check
+      - name: Monitor behaviour
+        run: python -m unittest discover -s llm-service -v
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
@@ -36,6 +38,12 @@ jobs:
       - name: Type check
         working-directory: data-kit
         run: npm run typecheck
+      - name: Recovered simulator domain and DOM checks
+        working-directory: data-kit
+        run: npm run test:simulador && npm run test:simulador-ui
       - name: Build data preview
         working-directory: data-kit
         run: npm run build
+      - name: Build ingestion API
+        working-directory: data-kit
+        run: npm run build:api

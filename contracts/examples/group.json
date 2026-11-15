@@ -1,0 +1,197 @@
+{
+  "schema_version": "1.0",
+  "message_id": "msg-group-001",
+  "mission_id": "MISSION-01",
+  "synthetic": true,
+  "clock": {
+    "mode": "simulation",
+    "timezone": "America/Lima",
+    "simulation_run_id": "SIM-01"
+  },
+  "subjects": [
+    {
+      "crew_id": "CREW-01",
+      "crew_member_id": "MEMBER-01",
+      "user_id": "USER-01",
+      "observations": [
+        {
+          "observation_id": "obs-1",
+          "parameter": "hr",
+          "value": 78,
+          "unit": "bpm",
+          "measured_at": "2026-11-14T20:00:00-05:00",
+          "status_at": "2026-11-14T20:00:01-05:00",
+          "source": {
+            "type": "simulator",
+            "device_id": "SIM-SUIT-01",
+            "observer_user_id": null
+          },
+          "availability": "measurable",
+          "report_status": "reported",
+          "quality": "valid",
+          "reason": null
+        },
+        {
+          "observation_id": "obs-2",
+          "parameter": "rr",
+          "value": 16,
+          "unit": "breaths/min",
+          "measured_at": "2026-11-14T20:00:00-05:00",
+          "status_at": "2026-11-14T20:00:01-05:00",
+          "source": {
+            "type": "manual",
+            "device_id": null,
+            "observer_user_id": "USER-02"
+          },
+          "availability": "measurable",
+          "report_status": "reported",
+          "quality": "valid",
+          "reason": null
+        },
+        {
+          "observation_id": "obs-3",
+          "parameter": "spo2",
+          "value": 97,
+          "unit": "%",
+          "measured_at": "2026-11-14T20:00:00-05:00",
+          "status_at": "2026-11-14T20:00:01-05:00",
+          "source": {
+            "type": "simulator",
+            "device_id": "SIM-SUIT-01",
+            "observer_user_id": null
+          },
+          "availability": "measurable",
+          "report_status": "reported",
+          "quality": "valid",
+          "reason": null
+        },
+        {
+          "observation_id": "obs-4",
+          "parameter": "sbp",
+          "value": 120,
+          "unit": "mmHg",
+          "measured_at": "2026-11-14T20:00:00-05:00",
+          "status_at": "2026-11-14T20:00:01-05:00",
+          "source": {
+            "type": "simulator",
+            "device_id": "SIM-SUIT-01",
+            "observer_user_id": null
+          },
+          "availability": "measurable",
+          "report_status": "reported",
+          "quality": "valid",
+          "reason": null
+        },
+        {
+          "observation_id": "obs-5",
+          "parameter": "dbp",
+          "value": 78,
+          "unit": "mmHg",
+          "measured_at": "2026-11-14T20:00:00-05:00",
+          "status_at": "2026-11-14T20:00:01-05:00",
+          "source": {
+            "type": "simulator",
+            "device_id": "SIM-SUIT-01",
+            "observer_user_id": null
+          },
+          "availability": "measurable",
+          "report_status": "reported",
+          "quality": "valid",
+          "reason": null
+        },
+        {
+          "observation_id": "obs-6",
+          "parameter": "temp",
+          "value": 36.7,
+          "unit": "Cel",
+          "measured_at": "2026-11-14T20:00:00-05:00",
+          "status_at": "2026-11-14T20:00:01-05:00",
+          "source": {
+            "type": "simulator",
+            "device_id": "SIM-SUIT-01",
+            "observer_user_id": null
+          },
+          "availability": "measurable",
+          "report_status": "reported",
+          "quality": "valid",
+          "reason": null
+        },
+        {
+          "observation_id": "obs-7",
+          "parameter": "consciousness",
+          "value": "alert",
+          "unit": null,
+          "measured_at": "2026-11-14T20:00:00-05:00",
+          "status_at": "2026-11-14T20:00:01-05:00",
+          "source": {
+            "type": "simulator",
+            "device_id": "SIM-SUIT-01",
+            "observer_user_id": null
+          },
+          "availability": "measurable",
+          "report_status": "reported",
+          "quality": "valid",
+          "reason": null
+        },
+        {
+          "observation_id": "obs-8",
+          "parameter": "on_oxygen",
+          "value": false,
+          "unit": null,
+          "measured_at": "2026-11-14T20:00:00-05:00",
+          "status_at": "2026-11-14T20:00:01-05:00",
+          "source": {
+            "type": "simulator",
+            "device_id": "SIM-SUIT-01",
+            "observer_user_id": null
+          },
+          "availability": "measurable",
+          "report_status": "reported",
+          "quality": "valid",
+          "reason": null
+        }
+      ]
+    },
+    {
+      "crew_id": "CREW-01",
+      "crew_member_id": "MEMBER-02",
+      "user_id": "USER-02",
+      "observations": [
+        {
+          "observation_id": "obs-09",
+          "parameter": "spo2",
+          "value": null,
+          "unit": "%",
+          "measured_at": null,
+          "status_at": "2026-11-14T20:00:01-05:00",
+          "source": {
+            "type": "simulator",
+            "device_id": "SIM-SUIT-01",
+            "observer_user_id": null
+          },
+          "availability": "measurable",
+          "report_status": "not_reporting",
+          "quality": "unknown",
+          "reason": "Venció el plazo de reporte configurado."
+        },
+        {
+          "observation_id": "obs-10",
+          "parameter": "temp",
+          "value": null,
+          "unit": "Cel",
+          "measured_at": null,
+          "status_at": "2026-11-14T20:00:01-05:00",
+          "source": {
+            "type": "manual",
+            "device_id": null,
+            "observer_user_id": "USER-02"
+          },
+          "availability": "not_measurable",
+          "report_status": "not_applicable",
+          "quality": "unknown",
+          "reason": "Sin medio de medición disponible."
+        }
+      ]
+    }
+  ]
+}

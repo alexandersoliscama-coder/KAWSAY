@@ -1,5 +1,24 @@
 # KAWSAY
 
+Simulador recuperado: ejecutar `Simulador-KAWSAY.cmd` o consultar
+[fuentes, comandos y límites](docs/SIMULADOR_RECUPERADO.md).
+Incluye ocho vistas y almacenamiento local; el envío desde este simulador a la API SQL sigue pendiente.
+
+## Panel actual — 14 de noviembre de 2026
+
+API y persistencia: el contrato de ingesta ya tiene un receptor transaccional
+para PostgreSQL, con datos ficticios y pruebas de SQL embebidas.
+Ver [inicio de la API](docs/API_RECEPCION.md) y
+[checklist de implementación](docs/CHECKLIST_IMPLEMENTACION.md).
+La conexión a un servidor PostgreSQL externo y su prueba de concurrencia siguen pendientes.
+
+La entrada principal ahora ofrece las vistas Astronauta y Personal médico,
+adaptación a pantallas pequeñas, autorreporte vinculado por tripulante,
+exportación de telemetría y catálogo médico en borrador.
+La compilación incluye manifest y caché de recursos estáticos para la PWA.
+Consulta [estado y límites de integración](docs/AVANCE_INTERFACES.md).
+Las instrucciones históricas del aporte de datos siguen a continuación.
+
 Team KUNTUR X · Synthetic crew data and local check-in contribution.
 
 This branch recovers the data generator and local recording prototype from the
@@ -7,11 +26,53 @@ November 13 practice session. It provides reproducible mission datasets, a React
 data preview, and a reusable check-in with confirmation, local history and JSON
 export. No real astronaut or patient data are included.
 
-## Branch workflow
+## Arquitectura (estado al 15/11/2026)
 
-- Work branch: `Datos-|-GENERADOR`.
-- Team integration target: `Integración`.
-- Do not push or merge this contribution into `main`.
+```mermaid
+flowchart TB
+  subgraph Datos["Datos sintéticos"]
+    GEN["data-gen/generate.py<br/>semilla 42"] --> VIT["app/public/data/<br/>vitals.json · crew.json"]
+    MAP["contracts/<br/>generated-crew-map.json"]
+  end
+
+  subgraph Sim["Simulador"]
+    SIM["simulator/simular.mjs<br/>reloj SIM-01 · 5 estados de equipo"]
+    OUT[("outbox/<br/>pendientes durante un corte")]
+  end
+
+  subgraph API["API de ingesta · 127.0.0.1:8780"]
+    REC["POST /api/v1/observations<br/>token Bearer · parseIngestion"]
+    DB[("PostgreSQL embebido (PGlite)<br/>database/*.sql")]
+    HIS["GET historial por tripulante"]
+  end
+
+  VIT --> SIM
+  MAP --> SIM
+  SIM -- "contrato v1" --> REC
+  SIM -- "sin respuesta: guarda" --> OUT
+  OUT -- "reenvía primero" --> REC
+  REC --> DB --> HIS
+  LAB["pruebas.html<br/>laboratorio vía /demo-api"] --> REC
+
+  NEWS["Motor NEWS-2<br/>34 reglas en borrador"]
+  UI["Interfaces astronauta / médico"]
+  LLM["llm-service + Ollama<br/>prototipo aislado"]
+
+  DB -. pendiente .-> NEWS
+  NEWS -. pendiente .-> UI
+  HIS -. pendiente .-> UI
+  NEWS -. pendiente .-> LLM
+
+  classDef pend stroke-dasharray: 5 5
+  class NEWS,UI,LLM pend
+```
+
+Línea continua: implementado y probado el 15/11 en una laptop. Línea punteada: pendiente.
+
+## Branch workflow
+- Current delivery branch: `feat/contrato-api-sql`.
+- Proposed PR target for this delivery: `main`, pending team review. Do not merge automatically.
+- The commands below document the earlier generator workflow; they do not publish this delivery.
 - On Windows use a local branch without `|`, such as `datos-generador`:
 
 ```powershell
@@ -91,7 +152,15 @@ The series include Ana's changing vitals, Ben's short sleep and test results,
 Carla's environmental exposure/headache, and Diego's changed measurements despite
 feeling fine. Read the contract before combining daily and hourly records.
 
-## Integration boundaries
+## Local Ollama prototype
+
+The isolated preview now includes a **Monitor IA** tab backed by
+`python llm-service/service.py`. It requests reports every five minutes, persists
+synthetic snapshots and reports in SQLite, and publishes nonclinical demo notices
+before inference. See [Ollama setup and limits](docs/OLLAMA.md). Manual check-ins
+remain separate; no real-time sensors or clinical triage have been implemented.
+
+## Original data contribution boundaries
 
 This module does not implement NEWS2, clinical rules, triage or EVA clearance.
 Nested field names are a proposed contract for the motor branch to review.

@@ -18,5 +18,17 @@ export const CHECKIN_FIELDS: FieldDef[] = [
   { path: "symptoms.dyspnea", label: "Dificultad para respirar", type: "boolean", group: "Molestias actuales" },
   { path: "symptoms.chest_pain", label: "Dolor en el pecho", type: "boolean", group: "Molestias actuales" },
   { path: "symptoms.headache", label: "Dolor de cabeza", type: "boolean", group: "Molestias actuales" },
+  { path: "vitals.on_oxygen", label: "Uso de oxígeno suplementario", type: "boolean", group: "Valoración complementaria" },
+  { path: "symptoms.new_confusion", label: "Confusión nueva observada", type: "boolean", group: "Valoración complementaria" },
+  { path: "symptoms.neuro_deficit", label: "Debilidad súbita, dificultad para hablar o pérdida de equilibrio", type: "boolean", group: "Valoración complementaria" },
+  { path: "symptoms.headache_red_flag", label: "Cefalea súbita, muy intensa o con síntomas nuevos", type: "boolean", group: "Valoración complementaria" },
+  { path: "symptoms.vision_sudden", label: "Pérdida súbita de visión o visión doble nueva", type: "boolean", group: "Valoración complementaria" },
+  { path: "symptoms.vision_gradual", label: "Cambio gradual de la visión", type: "boolean", group: "Molestias actuales" },
+  { path: "symptoms.abd_pain_severe", label: "Dolor abdominal intenso", type: "boolean", group: "Molestias actuales" },
+  { path: "symptoms.urinary_retention", label: "Dificultad para orinar pese a sentir ganas", type: "boolean", group: "Molestias actuales" },
+  { path: "symptoms.syncope", label: "Episodio de pérdida de conciencia", type: "boolean", group: "Molestias actuales" },
+  { path: "symptoms.pain_score", label: "Intensidad del dolor", type: "number", group: "Detalle de síntomas", unit: "/10", min: 0, max: 10 },
+  { path: "symptoms.duration_hours", label: "Tiempo desde el inicio de la molestia principal", type: "number", group: "Detalle de síntomas", unit: "h", min: 0 },
+  { path: "readiness.kss", label: "Somnolencia KSS (1: muy alerta; 9: lucha contra el sueño)", type: "number", group: "Sueño y actividad", min: 1, max: 9 },
 ];
 export const GROUPS = Array.from(new Set(CHECKIN_FIELDS.map((f) => f.group)));

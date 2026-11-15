@@ -151,5 +151,13 @@ vite.config.ts.timestamp-*
 # Python generator and local previews
 __pycache__/
 *.py[cod]
+llm-service/runtime/
 .venv/
+data-kit/.api-dist/
+data-kit/.demo-data/
+data-kit/.ingestion-data/
+pr-workspace/
+.preview-transfer/
+recovery.bundle
+KAWSAY-vista.html
 .npm-cache/

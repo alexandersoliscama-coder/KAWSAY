@@ -1,4 +1,8 @@
 body { margin: 0; background: #f5f7fa; color: #16202a; font-family: system-ui, sans-serif; }
+nav { flex-wrap: wrap; }
+.monitor-card { border: 1px solid #8a99a8; border-radius: .75rem; padding: 1rem; margin: 1rem 0; overflow-wrap: anywhere; }
+.monitor-card [role="alert"] { color: #9b2020; border-left: 4px solid currentColor; padding-left: .75rem; }
+button:disabled { opacity: .6; cursor: wait; }
 header { background: #16202a; color: white; padding: 1rem max(1rem, calc((100% - 46rem) / 2)); display: flex; flex-wrap: wrap; gap: 1rem; align-items: center; }
 header strong { letter-spacing: .1em; }
 nav { max-width: 46rem; margin: 1rem auto; display: flex; gap: .5rem; padding: 0 1rem; }

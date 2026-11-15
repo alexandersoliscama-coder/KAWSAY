@@ -1,0 +1,11 @@
+{
+  "dataset_id": "generator-v1-seed42",
+  "mission_id": "MISSION-01",
+  "crew_id": "CREW-01",
+  "members": [
+    {"source_crew_id":"A","ui_demo_id":"DEMO-01","user_id":"GEN-USER-A","crew_member_id":"GEN-MEMBER-A"},
+    {"source_crew_id":"B","ui_demo_id":"DEMO-02","user_id":"GEN-USER-B","crew_member_id":"GEN-MEMBER-B"},
+    {"source_crew_id":"C","ui_demo_id":"DEMO-03","user_id":"GEN-USER-C","crew_member_id":"GEN-MEMBER-C"},
+    {"source_crew_id":"D","ui_demo_id":"DEMO-04","user_id":"GEN-USER-D","crew_member_id":"GEN-MEMBER-D"}
+  ]
+}

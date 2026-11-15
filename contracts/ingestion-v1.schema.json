@@ -1,0 +1,735 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "KAWSAY ingestion proposal v1",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0"
+    },
+    "message_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "mission_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 128
+    },
+    "synthetic": {
+      "type": "boolean"
+    },
+    "clock": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "enum": [
+            "real",
+            "simulation"
+          ]
+        },
+        "timezone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "simulation_run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "timezone",
+        "simulation_run_id"
+      ]
+    },
+    "subjects": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "crew_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "crew_member_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "user_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "observations": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 100,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "observation_id": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 128
+                },
+                "parameter": {
+                  "enum": [
+                    "hr",
+                    "rr",
+                    "spo2",
+                    "sbp",
+                    "dbp",
+                    "temp",
+                    "consciousness",
+                    "on_oxygen"
+                  ]
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "string",
+                    "boolean",
+                    "null"
+                  ]
+                },
+                "unit": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "measured_at": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "date-time"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "status_at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "source": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "type",
+                    "device_id",
+                    "observer_user_id"
+                  ],
+                  "properties": {
+                    "type": {
+                      "enum": [
+                        "sensor",
+                        "manual",
+                        "simulator"
+                      ]
+                    },
+                    "device_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "observer_user_id": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                },
+                "availability": {
+                  "enum": [
+                    "measurable",
+                    "not_measurable"
+                  ]
+                },
+                "report_status": {
+                  "enum": [
+                    "reported",
+                    "pending",
+                    "not_reporting",
+                    "not_applicable"
+                  ]
+                },
+                "quality": {
+                  "enum": [
+                    "valid",
+                    "invalid",
+                    "unknown"
+                  ]
+                },
+                "reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "maxLength": 500
+                }
+              },
+              "required": [
+                "observation_id",
+                "parameter",
+                "value",
+                "unit",
+                "measured_at",
+                "status_at",
+                "source",
+                "availability",
+                "report_status",
+                "quality",
+                "reason"
+              ],
+              "allOf": [
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "hr"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "unit": {
+                        "const": "bpm"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "rr"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "unit": {
+                        "const": "breaths/min"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "spo2"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "unit": {
+                        "const": "%"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "sbp"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "unit": {
+                        "const": "mmHg"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "dbp"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "unit": {
+                        "const": "mmHg"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "temp"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "unit": {
+                        "const": "Cel"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "consciousness"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "unit": {
+                        "const": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "on_oxygen"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "unit": {
+                        "const": null
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "report_status": {
+                        "const": "reported"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "value": {
+                        "not": {
+                          "type": "null"
+                        }
+                      },
+                      "measured_at": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "availability": {
+                        "const": "measurable"
+                      }
+                    }
+                  },
+                  "else": {
+                    "properties": {
+                      "value": {
+                        "type": "null"
+                      },
+                      "measured_at": {
+                        "type": "null"
+                      },
+                      "quality": {
+                        "const": "unknown"
+                      },
+                      "reason": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "availability": {
+                        "const": "not_measurable"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "report_status": {
+                        "const": "not_applicable"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "report_status": {
+                        "const": "not_applicable"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "availability": {
+                        "const": "not_measurable"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "source": {
+                        "properties": {
+                          "type": {
+                            "enum": [
+                              "sensor",
+                              "simulator"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "source": {
+                        "properties": {
+                          "device_id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "source": {
+                        "properties": {
+                          "type": {
+                            "const": "manual"
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "source": {
+                        "properties": {
+                          "observer_user_id": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 128
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "hr"
+                      },
+                      "report_status": {
+                        "const": "reported"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "value": {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "rr"
+                      },
+                      "report_status": {
+                        "const": "reported"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "value": {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "spo2"
+                      },
+                      "report_status": {
+                        "const": "reported"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "value": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "sbp"
+                      },
+                      "report_status": {
+                        "const": "reported"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "value": {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "dbp"
+                      },
+                      "report_status": {
+                        "const": "reported"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "value": {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "temp"
+                      },
+                      "report_status": {
+                        "const": "reported"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "value": {
+                        "type": "number"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "on_oxygen"
+                      },
+                      "report_status": {
+                        "const": "reported"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "value": {
+                        "type": "boolean"
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "parameter": {
+                        "const": "consciousness"
+                      },
+                      "report_status": {
+                        "const": "reported"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "value": {
+                        "enum": [
+                          "alert",
+                          "new_confusion",
+                          "voice",
+                          "pain",
+                          "unresponsive"
+                        ]
+                      }
+                    }
+                  }
+                },
+                {
+                  "if": {
+                    "properties": {
+                      "quality": {
+                        "const": "invalid"
+                      }
+                    }
+                  },
+                  "then": {
+                    "properties": {
+                      "reason": {
+                        "type": "string",
+                        "minLength": 1
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "crew_id",
+          "crew_member_id",
+          "user_id",
+          "observations"
+        ]
+      }
+    }
+  },
+  "required": [
+    "schema_version",
+    "message_id",
+    "mission_id",
+    "synthetic",
+    "clock",
+    "subjects"
+  ],
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "clock": {
+            "properties": {
+              "mode": {
+                "const": "simulation"
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "synthetic": {
+            "const": true
+          },
+          "clock": {
+            "properties": {
+              "simulation_run_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "clock": {
+            "properties": {
+              "simulation_run_id": {
+                "type": "null"
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "synthetic": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "subjects": {
+            "items": {
+              "properties": {
+                "observations": {
+                  "items": {
+                    "properties": {
+                      "source": {
+                        "properties": {
+                          "type": {
+                            "not": {
+                              "const": "simulator"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

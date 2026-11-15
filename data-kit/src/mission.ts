@@ -67,6 +67,8 @@ export function parseMission(value: unknown): Mission {
 }
 
 export async function loadMission(base = "/data/", fetcher: typeof fetch = fetch): Promise<Mission> {
+  const embedded = (globalThis as typeof globalThis & { __KAWSAY_MISSION__?: unknown }).__KAWSAY_MISSION__;
+  if (embedded !== undefined && base === "/data/") return parseMission(embedded);
   const names = ["crew", "vitals", "daily", "environment"] as const;
   const values = await Promise.all(names.map(async name => {
     const response = await fetcher(`${base.replace(/\/?$/, "/")}${name}.json`);
