@@ -66,3 +66,21 @@ export function armarPaquete({ messageId, missionId, runId, timezone, subjects }
     subjects
   };
 }
+// Arma el paquete de UNA hora para uno o varios tripulantes (["A"] o ["A","B","C","D"]).
+export function paqueteDeHora(regs, config, astros, day, hour) {
+  const subjects = [];
+  for (const astro of astros) {
+    const t = config.tripulantes[astro];
+    const r = regs.find(x => x.astro === astro && x.day === day && x.hour === hour);
+    if (!r) throw new Error(`No hay registro de ${astro} en día ${day}, hora ${hour}`);
+    const ctx = { runId: config.simulationRunId, memberId: t.crew_member_id,
+                  deviceId: config.deviceId, inicio: config.inicioMision };
+    subjects.push({ crew_id: config.crewId, crew_member_id: t.crew_member_id,
+                    user_id: t.user_id, observations: observacionesDeRegistro(r, ctx) });
+  }
+  return armarPaquete({
+    messageId: `${config.simulationRunId}-msg-${astros.join("")}-d${dosDigitos(day)}h${dosDigitos(hour)}`,
+    missionId: config.missionId, runId: config.simulationRunId,
+    timezone: config.timezone, subjects
+  });
+}
