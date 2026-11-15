@@ -29,7 +29,7 @@ export. No real astronaut or patient data are included.
 ## Arquitectura (estado al 15/11/2026)
 
 ```mermaid
-flowchart LR
+flowchart TB
   subgraph Datos["Datos sintéticos"]
     GEN["data-gen/generate.py<br/>semilla 42"] --> VIT["app/public/data/<br/>vitals.json · crew.json"]
     MAP["contracts/<br/>generated-crew-map.json"]
