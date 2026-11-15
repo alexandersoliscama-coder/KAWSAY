@@ -1,5 +1,5 @@
-import { observacionLeida, aplicarEstado } from "./packet.mjs";
-
+import { observacionLeida } from "./packet.mjs";
+import { aplicarEstado } from "./estados.mjs";
 const base = observacionLeida({ runId: "SIM-01", memberId: "GEN-MEMBER-B", deviceId: "SIM-SUIT-01",
   inicio: "2028-01-01T00:00:00Z", day: 3, hour: 10, parametro: "spo2", valor: 97 });
 
