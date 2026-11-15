@@ -118,13 +118,14 @@ Cada decisión registra contexto, alternativas y consecuencias. **Propuesta** = 
 ## D.10 Modos del reloj: normal (x1) y acelerado
 - **Fecha:** 2026-11-15
 - **Responsable:** Yeremi Camacho (simulador)
-- **Estado:** Propuesta (implementación pendiente)
+- **Estado:** Propuesta · implementada en la rama `sim/08-demo-completa` (falta que el equipo la acepte)
 - **Contexto:** La tarea pide modo normal y acelerado "conservando la hora de cada medición y el identificador de ejecución". El contrato tiene dos modos de reloj: `simulation`, con `simulation_run_id`, y `real`, sin él.
-- **Decisión:** Los dos modos usan `clock.mode = "simulation"` y conservan `simulation_run_id`. La velocidad solo cambia cuánto tiempo real se espera entre envíos: en modo normal (x1) una hora simulada tarda una hora real; en acelerado (por ejemplo, x12) cinco minutos de misión pasan en 25 segundos. La hora de cada medición siempre sale del reloj simulado (D.06).
+- **Decisión:** Los dos modos usan `clock.mode = "simulation"` y conservan `simulation_run_id`. La velocidad solo cambia cuánto tiempo real se espera entre envíos. Se elige con `node simulator/simular.mjs --velocidad N`, donde N es cuántos segundos simulados pasan por cada segundo real: `1` es el modo normal (una hora simulada tarda una hora real) y `3600`, el valor por defecto, envía una hora simulada por segundo para la demo. La hora de cada medición siempre sale del reloj simulado (D.06).
+- **Cambio respecto a la propuesta:** La propuesta ponía como ejemplo "x12: cinco minutos de misión en 25 segundos". Como los datos son horarios (D.07), se implementó un multiplicador libre en lugar de valores fijos.
 - **Alternativas consideradas:**
   - Modo normal con `clock.mode = "real"`: pierde el identificador de ejecución, contra lo que pide la tarea.
 - **Consecuencias:** Cambiar la velocidad no cambia el contenido de los paquetes, así que se conserva D.09. Las esperas de red y los reintentos usan tiempo real, separado del reloj del escenario.
-- **Fuente:** Asignación de tareas del simulador · guía del simulador de Bryan (sección "Tiempo real y simulación acelerada") · `docs/CONTRATO_INGESTA_V1.md`.
+- **Fuente:** Asignación de tareas del simulador · guía del simulador de Bryan (sección "Tiempo real y simulación acelerada") · `docs/CONTRATO_INGESTA_V1.md` · `simulator/simular.mjs`.
 
 ## D.11 Rama de integración: `main`
 - **Fecha:** 2026-11-15
@@ -136,3 +137,27 @@ Cada decisión registra contexto, alternativas y consecuencias. **Propuesta** = 
   - Volver a usar `Integración`: obligaría a sincronizarla con `main` y a redirigir los PR ya abiertos.
 - **Consecuencias:** Cada cambio llega a `main` por un PR revisado por otra persona; no se sube directo a `main`.
 - **Fuente:** Historial de `main` (PR #1, #2 y #3) · acuerdo del equipo del 2026-11-14.
+
+## D.12 Política de reintentos y bandeja de salida (outbox)
+- **Fecha:** 2026-11-15
+- **Responsable:** Yeremi Camacho (simulador)
+- **Estado:** Propuesta · implementada en las ramas `sim/06-transporte` y `sim/07-outbox`, probada solo contra la API falsa
+- **Contexto:** La demo pide "conservar pendientes durante un corte y reenviarlas" y un "error comprensible cuando la API rechace". Bryan indicó que 400/413/415/422 se corrigen y no se reintentan, que 409 es conflicto y que un error de red o un 503 se reintentan. El contrato exige que un reenvío conserve identificadores y contenido.
+- **Decisión:**
+  - Se reintenta **solo** ante un 503 o cuando no hay respuesta (corte o más de 5 s sin contestar). Son 4 intentos con esperas que se duplican: 0.5 s, 1 s y 2 s.
+  - Cada reintento manda **el mismo paquete**, con los mismos IDs (D.09).
+  - Si después de los 4 intentos la API sigue sin responder, el paquete se guarda en `simulator/outbox/<message_id>.json`, un archivo por paquete. Se escribe primero un archivo temporal y luego se renombra.
+  - Antes de enviar un paquete nuevo se reenvían los pendientes en orden de hora. Si hay cola y la API sigue caída, el nuevo se forma al final.
+  - Si un pendiente recibe 409 o 422 al reenviarse, se aparta en `simulator/outbox/fallidos/` con un archivo `.motivo.txt`, para que no bloquee a los demás.
+  - La carpeta `outbox/` está ignorada por Git.
+- **Alternativas consideradas:**
+  - Solo prevenir errores en el código, sin outbox: ayuda con los errores de formato (para eso está `probar-contrato.mjs`), pero no evita los cortes, que ocurren fuera del simulador (API apagada, red caída).
+  - Corregir automáticamente los paquetes rechazados y reenviarlos: alteraría datos de salud sin que nadie lo revise y escondería el error del simulador. Se prefirió apartarlos en `fallidos/` con su motivo.
+  - Reintentar para siempre: si la API cae por horas, el simulador se quedaría trabado en un paquete y no avanzaría; con 4 intentos se rinde rápido y el paquete queda seguro en la outbox.
+  - Guardar todos los pendientes en un solo archivo: si se va la luz mientras ese archivo se reescribe, se pueden dañar todos los pendientes a la vez. Con un archivo por paquete, un fallo afecta como mucho a uno (y escribir un temporal y renombrarlo lo evita), y el nombre de cada archivo muestra qué horas quedaron pendientes durante la caída.
+- **Consecuencias:**
+  - Ningún paquete se pierde por un corte, y un reenvío nunca duplica datos, porque la API responde 200 `duplicate`.
+  - Un corte largo hace que cada envío tarde unos 3.5 s mientras intenta vaciar la cola.
+  - Los paquetes en `fallidos/` necesitan que una persona los revise.
+  - Los números (4 intentos, 5 s) son elección nuestra; no salen del contrato y pueden ajustarse con la API real.
+- **Fuente:** Respuesta de Bryan sobre los códigos de la API · `docs/CONTRATO_INGESTA_V1.md` (sección "Integración siguiente") · `simulator/transport.mjs` · `simulator/outbox.mjs` · pruebas `probar-transporte.mjs` y `probar-outbox.mjs`.
