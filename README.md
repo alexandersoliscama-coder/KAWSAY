@@ -26,8 +26,50 @@ November 13 practice session. It provides reproducible mission datasets, a React
 data preview, and a reusable check-in with confirmation, local history and JSON
 export. No real astronaut or patient data are included.
 
-## Branch workflow
+## Arquitectura (estado al 15/11/2026)
 
+```mermaid
+flowchart LR
+  subgraph Datos["Datos sintéticos"]
+    GEN["data-gen/generate.py<br/>semilla 42"] --> VIT["app/public/data/<br/>vitals.json · crew.json"]
+    MAP["contracts/<br/>generated-crew-map.json"]
+  end
+
+  subgraph Sim["Simulador"]
+    SIM["simulator/simular.mjs<br/>reloj SIM-01 · 5 estados de equipo"]
+    OUT[("outbox/<br/>pendientes durante un corte")]
+  end
+
+  subgraph API["API de ingesta · 127.0.0.1:8780"]
+    REC["POST /api/v1/observations<br/>token Bearer · parseIngestion"]
+    DB[("PostgreSQL embebido (PGlite)<br/>database/*.sql")]
+    HIS["GET historial por tripulante"]
+  end
+
+  VIT --> SIM
+  MAP --> SIM
+  SIM -- "contrato v1" --> REC
+  SIM -- "sin respuesta: guarda" --> OUT
+  OUT -- "reenvía primero" --> REC
+  REC --> DB --> HIS
+  LAB["pruebas.html<br/>laboratorio vía /demo-api"] --> REC
+
+  NEWS["Motor NEWS-2<br/>34 reglas en borrador"]
+  UI["Interfaces astronauta / médico"]
+  LLM["llm-service + Ollama<br/>prototipo aislado"]
+
+  DB -. pendiente .-> NEWS
+  NEWS -. pendiente .-> UI
+  HIS -. pendiente .-> UI
+  NEWS -. pendiente .-> LLM
+
+  classDef pend stroke-dasharray: 5 5
+  class NEWS,UI,LLM pend
+```
+
+Línea continua: implementado y probado el 15/11 en una laptop. Línea punteada: pendiente.
+
+## Branch workflow
 - Current delivery branch: `feat/contrato-api-sql`.
 - Proposed PR target for this delivery: `main`, pending team review. Do not merge automatically.
 - The commands below document the earlier generator workflow; they do not publish this delivery.
