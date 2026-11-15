@@ -4,9 +4,11 @@
 //   POST /api/v1/observations  (requiere "Authorization: Bearer <token>")
 //     201 paquete nuevo · 200 con duplicate=true si llega igual otra vez
 //     409 mismo ID con otro contenido · 400 JSON roto · 413 muy grande
-//     415 no es JSON · 401 sin token · 422 le falta lo mínimo · 503 corte
+//     415 no es JSON · 401 sin token · 422 no cumple el contrato · 503 corte
 //   GET /api/v1/crew-members/{id}/observations?clock_key=simulation:SIM-01&limit=50
 //
+// Valida con reglas-contrato.mjs (lo escrito en el contrato) y solo conoce a los
+// tripulantes de simulator/config.json, como si fueran los registrados en la base.
 // NO es el validador real (parseIngestion) ni guarda en SQL: todo vive en memoria
 // y se borra al cerrarla. La forma de los cuerpos JSON es una suposición nuestra;
 // cuando llegue la API de Bryan, manda la suya.
@@ -14,6 +16,8 @@
 // Uso:  node simulator/api-falsa.mjs           → responde normal
 //       node simulator/api-falsa.mjs --corte   → responde 503 a todo (simula caída)
 import http from "node:http";
+import fs from "node:fs";
+import { erroresDelPaquete } from "./reglas-contrato.mjs";
 
 const PUERTO = Number(process.env.KAWSAY_MOCK_PORT ?? 8781); // 8781: no choca con la real (8780)
 const TOKEN = process.env.KAWSAY_INGEST_TOKEN;
@@ -25,6 +29,9 @@ if (!TOKEN) {
   console.error("Falta KAWSAY_INGEST_TOKEN. En PowerShell: $env:KAWSAY_INGEST_TOKEN = \"solo-mock-local\"");
   process.exit(1);
 }
+
+const config = JSON.parse(fs.readFileSync("simulator/config.json", "utf8"));
+const miembrosConocidos = new Set(Object.values(config.tripulantes).map((t) => t.crew_member_id));
 
 const mensajes = new Map();      // message_id     → texto exacto recibido
 const observaciones = new Map(); // observation_id → { texto, registro guardado }
@@ -62,8 +69,9 @@ async function recibirPaquete(req, res) {
   try { paquete = JSON.parse(texto); }
   catch { return responder(res, 400, { error: "invalid_json", message: "El cuerpo no es JSON válido" }); }
 
-  if (!paquete.message_id || !Array.isArray(paquete.subjects) || paquete.subjects.length === 0)
-    return responder(res, 422, { error: "invalid_structure", message: "Faltan message_id o subjects" });
+  const errores = erroresDelPaquete(paquete, { miembrosConocidos });
+  if (errores.length)
+    return responder(res, 422, { error: "invalid_contract", message: errores[0], errors: errores.slice(0, 20) });
 
   const canon = JSON.stringify(paquete);
   const anterior = mensajes.get(paquete.message_id);
