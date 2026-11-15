@@ -104,24 +104,46 @@ Ctrl+C detiene la simulación; lo que no se envió queda en la outbox.
 | 401 / 403 | Token ausente o incorrecto | No |
 | 503 o sin respuesta | API no disponible / corte | Sí: 0.5 s, 1 s, 2 s; luego queda pendiente en la outbox |
 
-## Con la API real (pendiente)
+## Con la API real
 
-Cuando la API de ingesta esté en `main` y encendida (`npm run api`, puerto 8780):
+Probado el 15/11/2026: la API de Bryan (puerto 8780, PostgreSQL embebido) recibió los paquetes del simulador por HTTP.
+
+**1. Preparar (una sola vez), dentro de `data-kit/`:**
 ```powershell
+cd data-kit
+npm ci
+npm run build:api
+Copy-Item .env.example .env
+$t = node -e "process.stdout.write(require('node:crypto').randomBytes(32).toString('hex'))"
+(Get-Content .env) -replace '^KAWSAY_INGEST_TOKEN=.*', "KAWSAY_INGEST_TOKEN=$t" | Set-Content .env
+Remove-Variable t
+```
+El token queda solo en `data-kit/.env` (ignorado por Git). **Nunca** lo escribas en el código, en capturas ni en mensajes.
+
+**2. Terminal 1, encender la API (dentro de `data-kit/`):**
+```powershell
+npm run api:embedded
+```
+
+**3. Terminal 2 (nueva), desde la raíz del proyecto:**
+```powershell
+Remove-Item Env:KAWSAY_INGEST_TOKEN -ErrorAction SilentlyContinue
 $env:KAWSAY_API_URL = "http://127.0.0.1:8780"
 node --env-file=data-kit/.env simulator/simular.mjs --horas 0-3
 ```
-El token real se lee de `data-kit/.env` (ignorado por Git). **Nunca** lo escribas en el código, en capturas ni en mensajes.
+`--env-file` no reemplaza una variable que ya existe en la terminal. El `Remove-Item` borra el token de la API falsa; sin él, la API real responde 401.
+
+`probar-transporte.mjs` y `probar-fallos.mjs` se ejecutan igual, con `node --env-file=data-kit/.env`.
 
 ## Estado
 
 | Parte | Estado |
 |---|---|
 | Paquetes según el contrato, 8 variables, individual y grupo, 5 estados | ✅ Implementado |
-| Transporte, reintentos, outbox, pruebas de fallos (contra la API falsa) | ✅ Implementado |
+| Transporte, reintentos, outbox y pruebas de fallos | ✅ Probado contra la API real (8780) el 15/11 |
 | Velocidad normal y acelerada (D.10) | ✅ Implementado (`--velocidad`) |
-| Validación con `parseIngestion` y receptor real | Implementada en proceso con SQL embebido; HTTP pendiente por EACCES |
-| Mapa de IDs leído de `contracts/generated-crew-map.json` | Implementado, con rechazo de identidades repetidas y misión/equipo distintos |
-| Respuestas del receptor real | Comprobados 201, 200 duplicado, 409, 422, 401 e historial en proceso; mock separado |
+| Validación con `parseIngestion` | ✅ 725 paquetes, prueba de integración de Bryan ejecutada el 15/11 |
+| Mapa de IDs leído de `contracts/generated-crew-map.json` | ✅ Implementado, con rechazo de identidades repetidas y misión/equipo distintos |
+| Respuestas del receptor real por HTTP | ✅ 201, 200 duplicado, 409, 422, 401, historial por tripulante, corte con outbox y persistencia tras reinicio |
 
-Decisiones de diseño: ver `docs/DECISIONES.md` (D.03-D.11).
+Decisiones de diseño: ver `docs/DECISIONES.md` (D.01–D.12).
