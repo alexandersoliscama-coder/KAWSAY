@@ -1,0 +1,10 @@
+{
+  "inicioMision": "2028-01-01T00:00:00Z",
+  "rutaVitals": "app/public/data/vitals.json",
+  "simulationRunId": "SIM-01",
+  "missionId": "MISSION-01",
+  "crewId": "CREW-01",
+  "timezone": "America/Lima",
+  "deviceId": "SIM-SUIT-01",
+  "rutaMapa": "contracts/generated-crew-map.json"
+}

@@ -15,6 +15,7 @@
     "preview": "node scripts/serve.mjs",
     "build:api": "node scripts/build-api.mjs",
     "api": "node --env-file-if-exists=.env .api-dist/start.mjs",
+    "api:embedded": "node --env-file-if-exists=.env .api-dist/embedded.mjs",
     "db:migrate": "node --env-file-if-exists=.env scripts/database.mjs migrate",
     "db:seed-demo": "node --env-file-if-exists=.env scripts/database.mjs seed-demo",
     "send:demo": "node --env-file-if-exists=.env scripts/send-observations.mjs",

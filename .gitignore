@@ -155,6 +155,7 @@ llm-service/runtime/
 .venv/
 data-kit/.api-dist/
 data-kit/.demo-data/
+data-kit/.ingestion-data/
 pr-workspace/
 .preview-transfer/
 recovery.bundle
