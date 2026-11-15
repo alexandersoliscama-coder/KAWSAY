@@ -3,7 +3,7 @@ on:
   push:
     branches: ['Datos-|-GENERADOR']
   pull_request:
-    branches: ['Datos-|-GENERADOR', 'Integración']
+    branches: ['Datos-|-GENERADOR', 'Integración', 'main']
   workflow_dispatch:
 permissions:
   contents: read
@@ -38,6 +38,9 @@ jobs:
       - name: Type check
         working-directory: data-kit
         run: npm run typecheck
+      - name: Recovered simulator domain and DOM checks
+        working-directory: data-kit
+        run: npm run test:simulador && npm run test:simulador-ui
       - name: Build data preview
         working-directory: data-kit
         run: npm run build

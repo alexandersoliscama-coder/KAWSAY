@@ -2,6 +2,8 @@ import { createHash, timingSafeEqual } from "node:crypto";
 import { ApiError } from "./store";
 import type { IngestReceipt } from "./store";
 export interface Store {
+  listCrew(mission:string):Promise<unknown[]>;
+  baseline(mission:string,member:string):Promise<unknown>;
   ingest(input: unknown, mission: string): Promise<IngestReceipt>;
   history(mission: string, member: string, clock: string, limit: number): Promise<unknown[]>;
 }
@@ -21,6 +23,18 @@ export function createHandler(store: Store, config: ApiConfig) {
         return json(401,{error:"unauthorized",message:"Token requerido"});
       // Machine-to-machine endpoint; no browser-origin writes, no permissive CORS.
       if(request.headers.has("origin"))return json(403,{error:"browser_origin_rejected",message:"Usa el cliente de ingesta autorizado"});
+      if(url.pathname==="/api/v1/crew-members"){
+        if(request.method!=="GET")return json(405,{error:"method_not_allowed"});
+        return json(200,{mission_id:config.missionId,members:await store.listCrew(config.missionId)});
+      }
+      const baseMatch=/^\/api\/v1\/crew-members\/([^/]+)\/baseline$/.exec(url.pathname);
+      if(baseMatch){
+        if(request.method!=="GET")return json(405,{error:"method_not_allowed"});
+        let member:string;
+        try{member=decodeURIComponent(baseMatch[1]);}catch{return json(400,{error:"invalid_member"});}
+        if(!member.trim()||member.length>128)return json(400,{error:"invalid_member"});
+        return json(200,await store.baseline(config.missionId,member));
+      }
       if(url.pathname==="/api/v1/observations"){
         if(request.method!=="POST")return json(405,{error:"method_not_allowed"});
         if(!/^application\/json(?:\s*;|$)/i.test(request.headers.get("content-type")??""))

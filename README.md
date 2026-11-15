@@ -1,5 +1,9 @@
 # KAWSAY
 
+Simulador recuperado: ejecutar `Simulador-KAWSAY.cmd` o consultar
+[fuentes, comandos y límites](docs/SIMULADOR_RECUPERADO.md).
+Incluye ocho vistas y almacenamiento local; el envío desde este simulador a la API SQL sigue pendiente.
+
 ## Panel actual — 14 de noviembre de 2026
 
 API y persistencia: el contrato de ingesta ya tiene un receptor transaccional
@@ -24,9 +28,9 @@ export. No real astronaut or patient data are included.
 
 ## Branch workflow
 
-- Work branch: `Datos-|-GENERADOR`.
-- Team integration target: `Integración`.
-- Do not push or merge this contribution into `main`.
+- Current delivery branch: `feat/contrato-api-sql`.
+- Proposed PR target for this delivery: `main`, pending team review. Do not merge automatically.
+- The commands below document the earlier generator workflow; they do not publish this delivery.
 - On Windows use a local branch without `|`, such as `datos-generador`:
 
 ```powershell

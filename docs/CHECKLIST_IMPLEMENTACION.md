@@ -10,8 +10,8 @@ Estados: [x] implementado y comprobado según el alcance indicado; [~] parcial; 
 - [x] Relojes real/simulado separados; política de tiempos aún sin valores acordados.
 - [x] Esquema inicial PostgreSQL y migración transaccional.
 - [x] Registro de identidades, dispositivos y ejecuciones ficticias para ejemplos.
-- [ ] Relación explícita de estas identidades con los cuatro perfiles generados.
-- [ ] Historia base premisión y antecedentes.
+- [x] Relación explícita de identidades SQL con los cuatro perfiles generados; fixtures del laboratorio separados.
+- [~] Historia base versionada e importación de perfiles ficticios. Antecedentes sin registrar; faltan formulario premisión y aprobación médica.
 
 ## API y persistencia
 
@@ -50,6 +50,19 @@ Estados: [x] implementado y comprobado según el alcance indicado; [~] parcial; 
 
 La API nueva todavía no alimenta la interfaz ni el monitor IA. Los casos del Excel se mantienen como banco de pruebas separado.
 Detalles y comandos: API_RECEPCION.md.
+
+## Bloque de historia base (15 de noviembre)
+
+- [x] Migración incremental sin eliminar observaciones previas.
+- [x] Importación atómica e idempotente con rechazo de conflictos.
+- [x] Consulta autenticada de perfiles e historia base por misión.
+- [x] Selector de perfiles generados en el laboratorio técnico.
+- [ ] Conectar estas consultas a la vista de astronauta y médico.
+- [ ] Registrar y aprobar antecedentes reales mediante formulario premisión.
+
+Correspondencias, comandos y reparto para dos personas: HISTORIA_BASE.md.
+
+Verificación: primera ronda del bloque, 42 pruebas aprobadas y una externa omitida; TypeScript y compilaciones correctos. Después se reforzó la relación SQL entre perfil fuente y pertenencia y se añadieron comprobaciones de reversión de migraciones e ingesta de Ana sin mezclar su historial con Ben. La ejecución final quedó bloqueada por revisión automática ante una posible conexión de telemetría a dc.services.visualstudio.com; estos últimos cambios quedan pendientes de verificar. No se inició el servidor en este bloque.
 
 ## Última verificación de este bloque
 

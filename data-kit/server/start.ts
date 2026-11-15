@@ -12,7 +12,7 @@ const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,max:5,connecti
   idleTimeoutMillis:10000,statement_timeout:10000});
 pool.on("error",()=>console.error("Conexión de base de datos interrumpida"));
 const handler=createHandler(new ObservationStore(pool),{token,missionId});
-const version=await pool.query("SELECT 1 FROM kawsay.schema_migrations WHERE version='001_ingestion'");
+const version=await pool.query("SELECT 1 FROM kawsay.schema_migrations WHERE version='002_baselines'");
 if(!version.rows.length)throw new Error("Ejecuta db:migrate antes de iniciar");
 const server=createServer(async(req,res)=>{
   try{

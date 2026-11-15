@@ -21,6 +21,26 @@ export interface IngestReceipt { message_id: string; duplicate: boolean; receive
 
 export class ObservationStore {
   constructor(private db: Database) {}
+  async listCrew(mission:string) {
+    const client=await this.db.connect();
+    try{
+      return (await client.query(`SELECT m.mission_id,m.crew_id,m.crew_member_id,m.user_id,u.display_name,
+        COALESCE((SELECT jsonb_agg(jsonb_build_object('dataset_id',l.dataset_id,'source_crew_id',l.source_crew_id,'ui_demo_id',l.ui_demo_id) ORDER BY l.dataset_id)
+          FROM kawsay.source_crew_links l WHERE l.mission_id=m.mission_id AND l.crew_member_id=m.crew_member_id),'[]'::jsonb) AS sources,
+        (SELECT max(b.version) FROM kawsay.baseline_records b WHERE b.mission_id=m.mission_id AND b.crew_member_id=m.crew_member_id) AS baseline_version
+        FROM kawsay.crew_members m JOIN kawsay.users u ON u.user_id=m.user_id
+        WHERE m.mission_id=$1 ORDER BY u.display_name,m.crew_member_id`,[mission])).rows;
+    }finally{client.release();}
+  }
+  async baseline(mission:string,member:string) {
+    const client=await this.db.connect();
+    try{
+      const rows=(await client.query(`SELECT mission_id,crew_member_id,version,dataset_id,source_crew_id,recorded_at,profile
+        FROM kawsay.baseline_records WHERE mission_id=$1 AND crew_member_id=$2 ORDER BY version DESC LIMIT 1`,[mission,member])).rows;
+      if(!rows.length)throw new ApiError(404,"baseline_not_found","No hay historia base registrada para ese tripulante y misión");
+      return rows[0];
+    }finally{client.release();}
+  }
   async ingest(input: unknown, authorizedMission: string): Promise<IngestReceipt> {
     let p: IngestionMessage;
     try {p=parseIngestion(input);} catch(e){throw new ApiError(422,"invalid_payload",String(e));}

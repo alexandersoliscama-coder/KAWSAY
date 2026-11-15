@@ -8,6 +8,8 @@ import { PGlite } from "@electric-sql/pglite";
 import { ObservationStore } from "./store";
 import { serializedDatabase } from "./serialized-db";
 import { createHandler } from "./http";
+import { applyMigrations } from "./migrations";
+import { importGeneratedProfiles } from "./generated-profiles";
 
 const kit=fileURLToPath(new URL("../",import.meta.url));
 const root=resolve(kit,"dist"), state=resolve(kit,".demo-data");
@@ -17,12 +19,11 @@ if(typeof port!=="number"||!Number.isInteger(port)||port<1024||port>65535)throw 
 await mkdir(state,{recursive:true});
 const db=new PGlite(state);
 await db.waitReady;
-const exists=await db.query<{name:string|null}>("SELECT to_regclass('kawsay.schema_migrations') AS name");
-if(!exists.rows[0].name){
-  const sql=await readFile(resolve(kit,"../database/001_ingestion.sql"),"utf8");
-  await db.exec("BEGIN;"+sql+"COMMIT;");
-}
+await applyMigrations(db,{advisoryLock:false});
 await db.exec(await readFile(resolve(kit,"../database/demo_seed.sql"),"utf8"));
+await importGeneratedProfiles(serializedDatabase(db),
+  JSON.parse(await readFile(resolve(kit,"../app/public/data/crew.json"),"utf8")),
+  JSON.parse(await readFile(resolve(kit,"../contracts/generated-crew-map.json"),"utf8")));
 const token=randomBytes(32).toString("hex");
 const handler=createHandler(new ObservationStore(serializedDatabase(db)),{token,missionId:"MISSION-01"});
 const origins=[`http://127.0.0.1:${port}`,`http://localhost:${port}`];

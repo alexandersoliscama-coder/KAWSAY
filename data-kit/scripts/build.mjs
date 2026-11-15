@@ -3,7 +3,9 @@ import { mkdir, copyFile, writeFile, readFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import { fileURLToPath } from "node:url";
 const output = new URL("../dist/", import.meta.url);
+await import('./build-simulator.mjs');
 await mkdir(new URL("data/", output), { recursive: true });
+await copyFile(new URL('../demo/kawsay-simulador.html', import.meta.url), new URL('kawsay-simulador.html', output));
 for (const name of ["crew", "vitals", "daily", "environment", "manifest"]) {
   await copyFile(new URL(`../../app/public/data/${name}.json`, import.meta.url), new URL(`data/${name}.json`, output));
 }
