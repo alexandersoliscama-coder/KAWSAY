@@ -1,17 +1,17 @@
-import fs from "node:fs";
-import { cargarVitals } from "./source.mjs";
+// probar-grupo.mjs — Comprueba que el paquete grupal no mezcla tripulantes.
+import { cargarVitals, cargarConfig } from "./source.mjs";
 import { paqueteDeHora } from "./packet.mjs";
 
-const config = JSON.parse(fs.readFileSync("simulator/config.json", "utf-8"));
-const regs = cargarVitals(config.rutaVitals);
+const config = cargarConfig();
+const registros = cargarVitals(config.rutaVitals);
 
-const individual = paqueteDeHora(regs, config, ["A"], 0, 0);
-const grupo = paqueteDeHora(regs, config, ["A", "B", "C", "D"], 0, 0);
+const individual = paqueteDeHora(registros, config, ["A"], 0, 0);
+const grupo = paqueteDeHora(registros, config, ["A", "B", "C", "D"], 0, 0);
 
 console.log("Individual:", individual.message_id, "| personas:", individual.subjects.length);
 console.log("Grupo:", grupo.message_id, "| personas:", grupo.subjects.length);
-for (const s of grupo.subjects) {
-  const ajenas = s.observations.filter(o => !o.observation_id.includes(s.crew_member_id)).length;
-  console.log(" ", s.crew_member_id, "| obs:", s.observations.length, "| hr:",
-    s.observations.find(o => o.parameter === "hr").value, "| ajenas:", ajenas);
+for (const persona of grupo.subjects) {
+  const ajenas = persona.observations.filter(obs => !obs.observation_id.includes(persona.crew_member_id)).length;
+  const fc = persona.observations.find(obs => obs.parameter === "hr").value;
+  console.log(" ", persona.crew_member_id, "| obs:", persona.observations.length, "| hr:", fc, "| ajenas:", ajenas);
 }
