@@ -43,15 +43,16 @@ function InputField({ field, value, onChange }: { field: FieldDef; value: string
 }
 
 /** Recording-only prototype. Deliberately does not invoke the triage engine. */
-export function CheckIn({ storage }: { storage?: CheckInStorage }) {
+export function CheckIn({ storage, initialCrewId, onSaved, onlySelected = false }: { storage?: CheckInStorage; initialCrewId?: string; onSaved?: () => void; onlySelected?: boolean }) {
   const reviewTitle = useRef<HTMLHeadingElement>(null);
-  const [draft, setDraft] = useState(() => emptyDraft());
+  const [draft, setDraft] = useState(() => ({ ...emptyDraft(), crewId: initialCrewId ?? "" }));
   const [pending, setPending] = useState<CheckInRecord | null>(null);
   const [records, setRecords] = useState<CheckInRecord[]>([]);
   const [errors, setErrors] = useState<string[]>([]);
   const [storageError, setStorageError] = useState("");
   const [notice, setNotice] = useState("");
   const getStorage = () => storage ?? window.localStorage;
+  const visibleRecords = onlySelected ? records.filter(r => r.crewId === initialCrewId) : records;
 
   useEffect(() => {
     try { setRecords(readCheckIns(storage ?? window.localStorage)); setStorageError(""); }
@@ -77,8 +78,9 @@ export function CheckIn({ storage }: { storage?: CheckInStorage }) {
       setRecords(next);
       setStorageError("");
       setPending(null);
-      setDraft(emptyDraft());
+      setDraft({ ...emptyDraft(), crewId: initialCrewId ?? "" });
       setNotice("Registro guardado en este navegador. Puedes consultarlo en el historial.");
+      onSaved?.();
     } catch (error) { setStorageError(errorText(error)); }
   }
 
@@ -94,7 +96,7 @@ export function CheckIn({ storage }: { storage?: CheckInStorage }) {
       <h2>1. Identificación y contexto</h2>
       <div className="kw-field">
         <label htmlFor="checkin-crew">Tripulante simulado</label>
-        <select id="checkin-crew" value={draft.crewId} onChange={(e) => setDraft({ ...draft, crewId: e.target.value })}>
+        <select id="checkin-crew" disabled={onlySelected} value={draft.crewId} onChange={(e) => setDraft({ ...draft, crewId: e.target.value })}>
           <option value="">Seleccionar</option>
           {CREW_IDS.map((id) => <option key={id} value={id}>{id}</option>)}
         </select>
@@ -126,11 +128,11 @@ export function CheckIn({ storage }: { storage?: CheckInStorage }) {
     </section>}
 
     <section className="kw-history" aria-labelledby="checkin-history-title">
-      <h2 id="checkin-history-title">Historial local ({records.length})</h2>
+      <h2 id="checkin-history-title">Historial local ({visibleRecords.length})</h2>
       <p className="kw-hint">Permanece al recargar en el mismo navegador y dirección. Borrar los datos del navegador elimina los registros; exporta una copia si la necesitas.</p>
-      {records.length === 0 ? <p>No hay registros disponibles.</p> : <>
-        <a download="kawsay-checkins-simulados.json" href={"data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ schemaVersion: 1, synthetic: true, records }, null, 2))}>Exportar historial JSON</a>
-        {records.map((record) => <details className="kw-group" key={record.id}>
+      {visibleRecords.length === 0 ? <p>No hay registros disponibles.</p> : <>
+        <a download="kawsay-checkins-simulados.json" href={"data:application/json;charset=utf-8," + encodeURIComponent(JSON.stringify({ schemaVersion: 1, synthetic: true, records: visibleRecords }, null, 2))}>Exportar historial JSON</a>
+        {visibleRecords.map((record) => <details className="kw-group" key={record.id}>
           <summary>{record.crewId} · {dateLabel(record.observedAt)}</summary>
           <p className="kw-hint">Guardado: {dateLabel(record.recordedAt)} · {record.catalogVersion}</p>
           <Answers record={record} />

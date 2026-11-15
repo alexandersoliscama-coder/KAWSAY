@@ -1,0 +1,10 @@
+import { readFile, writeFile } from "node:fs/promises";
+const dist=new URL("../dist/",import.meta.url);
+const [js,css]=await Promise.all(["app.js","app.css"].map(n=>readFile(new URL(n,dist),"utf8")));
+const mission={};
+for(const name of ["crew","vitals","daily","environment"]) mission[name]=JSON.parse(await readFile(new URL(`data/${name}.json`,dist),"utf8"));
+const safe=s=>s.replace(/<\/script/gi,"<\\/script").replace(/<!--/g,"<\\!--");
+const html=`<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#102e3b"><title>KAWSAY · Vista interactiva</title><style>${css}</style></head><body><aside style="padding:12px;background:#d9f7ec;color:#103a35;font:14px system-ui">Vista HTML autónoma · Funciona sin servidor · La IA requiere el servicio local.</aside><div id="root"></div><script>globalThis.__KAWSAY_MISSION__=${safe(JSON.stringify(mission))};</script><script type="module">${safe(js)}</script></body></html>`;
+const path=new URL("../../KAWSAY-vista.html",import.meta.url);
+await writeFile(path,html,"utf8");
+console.log(`Standalone preview: ${path.pathname} (${Buffer.byteLength(html)} bytes)`);

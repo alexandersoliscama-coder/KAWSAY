@@ -6,10 +6,5 @@
   "crewId": "CREW-01",
   "timezone": "America/Lima",
   "deviceId": "SIM-SUIT-01",
-  "tripulantes": {
-    "A": { "user_id": "GEN-USER-A", "crew_member_id": "GEN-MEMBER-A" },
-    "B": { "user_id": "GEN-USER-B", "crew_member_id": "GEN-MEMBER-B" },
-    "C": { "user_id": "GEN-USER-C", "crew_member_id": "GEN-MEMBER-C" },
-    "D": { "user_id": "GEN-USER-D", "crew_member_id": "GEN-MEMBER-D" }
-  }
+  "rutaMapa": "contracts/generated-crew-map.json"
 }

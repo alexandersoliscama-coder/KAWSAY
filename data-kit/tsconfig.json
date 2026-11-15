@@ -7,9 +7,10 @@
     "jsx": "react-jsx",
     "strict": true,
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["src", "tests", "demo"]
+  "include": ["src", "tests", "demo", "server"]
 }

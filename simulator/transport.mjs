@@ -18,9 +18,9 @@ export function clasificar(codigo) {
 }
 
 // Un solo intento. Nunca lanza error: siempre devuelve un resultado legible.
-export async function enviarPaquete(paquete, { base, token }) {
+export async function enviarPaquete(paquete, { base, token, fetchImpl = globalThis.fetch }) {
   try {
-    const res = await fetch(`${base}/api/v1/observations`, {
+    const res = await fetchImpl(`${base}/api/v1/observations`, {
       method: "POST",
       headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
       body: JSON.stringify(paquete),
@@ -50,11 +50,11 @@ export async function enviarConReintentos(paquete, opciones, { intentos = 4, esp
   return resultado; // si reintentar sigue en true, el paquete queda PENDIENTE (lo guardará la outbox)
 }
 
-export async function leerHistorial(memberId, { base, token }, clockKey = "simulation:SIM-01", limite = 50) {
+export async function leerHistorial(memberId, { base, token, fetchImpl = globalThis.fetch }, clockKey = "simulation:SIM-01", limite = 50) {
   const url = `${base}/api/v1/crew-members/${encodeURIComponent(memberId)}/observations?clock_key=${encodeURIComponent(clockKey)}&limit=${limite}`;
   let res;
   try {
-    res = await fetch(url, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(ESPERA_MAX_MS) });
+    res = await fetchImpl(url, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(ESPERA_MAX_MS) });
   } catch {
     throw new Error("Historial no disponible: no hubo respuesta de la API (corte o API apagada).");
   }

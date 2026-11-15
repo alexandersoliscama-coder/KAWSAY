@@ -10,7 +10,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { enviarConReintentos } from "./transport.mjs";
 
-const CARPETA = path.join("simulator", "outbox");
+const CARPETA = process.env.KAWSAY_OUTBOX_DIR ?? path.join("simulator", "outbox");
 const CARPETA_FALLIDOS = path.join(CARPETA, "fallidos");
 
 function asegurarCarpetas() {

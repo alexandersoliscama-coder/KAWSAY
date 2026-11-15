@@ -1,5 +1,14 @@
 # Simulador KAWSAY
 
+## Integración local con el receptor real
+
+Esta copia parte del trabajo de Yeremi en `063e05b`. Ahora obtiene las identidades
+de `contracts/generated-crew-map.json`. Las pruebas contra el receptor real y SQL,
+el arranque sin PostgreSQL externo y sus límites están en
+[INTEGRACION_YEREMI.md](../docs/INTEGRACION_YEREMI.md).
+La prueba por sockets HTTP queda pendiente por un bloqueo EACCES del entorno.
+El resto de este README conserva el guion original contra la API falsa.
+
 Envía los signos vitales **ficticios** del generador (`app/public/data/vitals.json`) a la API de ingesta,
 usando el contrato `CONTRATO_INGESTA_V1` (sin formato paralelo).
 
@@ -111,8 +120,8 @@ El token real se lee de `data-kit/.env` (ignorado por Git). **Nunca** lo escriba
 | Paquetes según el contrato, 8 variables, individual y grupo, 5 estados | ✅ Implementado |
 | Transporte, reintentos, outbox, pruebas de fallos (contra la API falsa) | ✅ Implementado |
 | Velocidad normal y acelerada (D.10) | ✅ Implementado (`--velocidad`) |
-| Validación con `parseIngestion` y prueba contra la API real | ⏳ Pendiente: falta el código de la API en `main` |
-| Mapa de IDs leído de `contracts/generated-crew-map.json` | ⏳ Pendiente: hoy es una copia en `config.json` |
-| Forma de los cuerpos JSON de respuesta | ⚠️ Supuesta en la API falsa; confirmar con la API real |
+| Validación con `parseIngestion` y receptor real | Implementada en proceso con SQL embebido; HTTP pendiente por EACCES |
+| Mapa de IDs leído de `contracts/generated-crew-map.json` | Implementado, con rechazo de identidades repetidas y misión/equipo distintos |
+| Respuestas del receptor real | Comprobados 201, 200 duplicado, 409, 422, 401 e historial en proceso; mock separado |
 
 Decisiones de diseño: ver `docs/DECISIONES.md` (D.03-D.11).

@@ -16,7 +16,7 @@
 // Uso:  node simulator/api-falsa.mjs           → responde normal
 //       node simulator/api-falsa.mjs --corte   → responde 503 a todo (simula caída)
 import http from "node:http";
-import fs from "node:fs";
+import { cargarConfig } from "./source.mjs";
 import { erroresDelPaquete } from "./reglas-contrato.mjs";
 
 const PUERTO = Number(process.env.KAWSAY_MOCK_PORT ?? 8781); // 8781: no choca con la real (8780)
@@ -30,7 +30,7 @@ if (!TOKEN) {
   process.exit(1);
 }
 
-const config = JSON.parse(fs.readFileSync("simulator/config.json", "utf8"));
+const config = cargarConfig();
 const miembrosConocidos = new Set(Object.values(config.tripulantes).map((t) => t.crew_member_id));
 
 const mensajes = new Map();      // message_id     → texto exacto recibido
