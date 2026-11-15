@@ -84,3 +84,22 @@ export function paqueteDeHora(regs, config, astros, day, hour) {
     timezone: config.timezone, subjects
   });
 }
+// Estados de los equipos (contrato §Estados). Modifica una observación ya armada.
+export function aplicarEstado(obs, estado, motivo) {
+  const o = { ...obs };
+  if (estado === "medible") return o;
+  if (!motivo) throw new Error(`El estado "${estado}" necesita un motivo`);
+  o.reason = motivo;
+  if (estado === "invalida") {            // conserva valor y hora
+    o.quality = "invalid";
+    return o;
+  }
+  o.value = null;                          // los demás: sin lectura
+  o.measured_at = null;
+  o.quality = "unknown";
+  if (estado === "esperando") o.report_status = "pending";
+  else if (estado === "sin_reporte") o.report_status = "not_reporting";
+  else if (estado === "sin_medio") { o.availability = "not_measurable"; o.report_status = "not_applicable"; }
+  else throw new Error(`Estado desconocido: ${estado}`);
+  return o;
+}
