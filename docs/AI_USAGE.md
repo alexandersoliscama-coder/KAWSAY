@@ -41,14 +41,26 @@ patient data were used. The simulator performs no clinical calculation, and
 it was tested only on one laptop (127.0.0.1), not between devices.
 ## Clinical rules and cases catalog
 
-Claudia Pinto and Milagros Villegas (clinical team) wrote the 34 draft rules,
-the 60 cases, their thresholds, actions, levels and sources, from clinical
-guidelines and published evidence. The local LLM qwen3:4b (run through Ollama)
-was used only to order and format the information of the clinical cases
-(organizing fields and columns in the workbook). It did not propose thresholds, levels, actions, diagnoses or
-sources. The label "Draft (AI-assisted)" in `data-kit/demo/reference-catalog.json`
-refers to this formatting support. All rules remain drafts pending physician
-sign-off; no clinical validation is claimed.
+Claudia Pinto and Milagros Villegas (clinical team) wrote the 34 draft rules
+and the clinical cases from clinical guidelines and published evidence. As
+stated in the evaluation protocol (`docs/EVALUATION_PROTOCOL.md`, sections 4.2,
+4.6 and 4.14), an AI assistant (the local LLM qwen3:4b, run through Ollama)
+helped the team to:
+
+- write the 15 fictional spaceflight vignettes, based on medical problems
+  documented in flight or on NASA standards;
+- propose, case by case, the reference level of those vignettes from a
+  clinical guideline or a NASA standard;
+- search for sources and draft text.
+
+All medical content was reviewed by the team's physicians. Claudia Pinto and
+Milagros Villegas review the proposed reference levels separately, without
+communicating with each other and without seeing the application's answer,
+and either endorse them or propose another level. The label
+"Draft (AI-assisted)" in `data-kit/demo/reference-catalog.json` refers to this
+support. All rules remain drafts pending physician sign-off; no clinical
+validation is claimed. This use is also declared in the Space Apps submission
+form.
 
 ## Background review and project analysis
 

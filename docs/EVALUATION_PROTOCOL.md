@@ -527,7 +527,7 @@ Checked against branch `main` (PR #14) plus PR #17 on 15 November 2026. "Done" m
 
 ## II.2 Consistency items the team must resolve before freezing
 
-1. **AI use in the clinical cases.** Sections 4.2 and 4.6 say an AI assistant helped *write* the spaceflight vignettes and *propose* their reference levels, and 4.14 says it was used to *search sources and draft text*. `docs/AI_USAGE.md` now states, as indicated by the team on 15 November 2026, that the LLM qwen3:4b was used **only to order the information** of the clinical cases. Both statements must say the same thing before freezing and before the Space Apps form is submitted.
+1. **AI use in the clinical cases — resolved.** `docs/AI_USAGE.md` now states the same as sections 4.2, 4.6 and 4.14: an AI assistant (qwen3:4b) helped write the spaceflight vignettes, propose their reference levels, search sources and draft text, and all medical content was reviewed by the team's physicians.
 2. **Number of sources.** 77 in `KAWSAY_References.xlsx` (4.1) versus 58 in the catalogue snapshot.
 3. **Rule order.** Section 4.3 says all rules are evaluated and the most urgent wins; `motor/evaluar.mjs` uses "first match from most to least severe". Both give the same result only if every rule is ordered correctly; the protocol wording should be the implementation once the 32 rules are added.
 4. **Abstention wording.** Protocol: on the spacecraft, missing NEWS2 data without red flags gives INSUFFICIENT DATA and asks for new measurements. Catalogue R19: measure the missing vital signs, run the evaluation again, and call the CMO without waiting if the crew member feels unwell. The engine implements this. Keep the three texts aligned.
@@ -544,10 +544,10 @@ These four priorities came from the background review (NASA ExMC/CDSS, EveryWear
 |---|---|---|
 | OpenAI Codex | Liu Bryan Cayllahua Huaringa | Generator, check-in, adapters, Ollama prototype, dashboard, PWA, PostgreSQL schema, API and tests |
 | Claude (Anthropic) | Yeremi Alexander Camacho Solis | Telemetry simulator; search for background systems similar to the ones he defined and structuring of the comparison; implementation of D.13 |
-| qwen3:4b (local LLM through Ollama) | Clinical team (Claudia Pinto and Milagros Villegas) | Only to order and format the information of the clinical cases. It did not propose thresholds, levels, actions, diagnoses or sources |
+| qwen3:4b (local LLM through Ollama) | Clinical team (Claudia Pinto and Milagros Villegas) | Helped write the 15 spaceflight vignettes, propose their reference levels, search sources and draft text (protocol sections 4.2, 4.6 and 4.14). All medical content was reviewed by the team's physicians, and the reference levels are endorsed separately by Claudia Pinto and Milagros Villegas |
 | qwen3:4b (in the product) | — | Writes the AI monitor's text summary. It never sets the level (D.13) |
 
-The structural analysis of the project (problem, target users, MVP functionalities and comparison criteria) is Yeremi Alexander Camacho Solis's. See II.2 item 1 for the wording that still has to be reconciled with the protocol.
+The structural analysis of the project (problem, target users, MVP functionalities and comparison criteria) is Yeremi Alexander Camacho Solis's. The AI declaration matches the protocol (II.2 item 1).
 
 ## III.2 Official engine and AI monitor — decision D.13
 
