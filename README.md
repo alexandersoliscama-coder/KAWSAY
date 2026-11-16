@@ -4,6 +4,8 @@ Simulador recuperado: ejecutar `Simulador-KAWSAY.cmd` o consultar
 [fuentes, comandos y límites](docs/SIMULADOR_RECUPERADO.md).
 Incluye ocho vistas y almacenamiento local; el envío desde este simulador a la API SQL sigue pendiente.
 
+Protocolo de evaluación, estado de implementación y escalabilidad: [docs/EVALUATION_PROTOCOL.md](docs/EVALUATION_PROTOCOL.md).
+
 ## Panel actual — 14 de noviembre de 2026
 
 API y persistencia: el contrato de ingesta ya tiene un receptor transaccional

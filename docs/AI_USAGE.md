@@ -39,3 +39,44 @@ commits and pull requests, and ran the end-to-end test against the real API
 on port 8780. All data are seeded synthetic data; no real astronaut or
 patient data were used. The simulator performs no clinical calculation, and
 it was tested only on one laptop (127.0.0.1), not between devices.
+## Clinical rules and cases catalog
+
+Claudia Pinto and Milagros Villegas (clinical team) wrote the 34 draft rules
+and the clinical cases from clinical guidelines and published evidence. As
+stated in the evaluation protocol (`docs/EVALUATION_PROTOCOL.md`, sections 4.2,
+4.6 and 4.14), an AI assistant (the local LLM qwen3:4b, run through Ollama)
+helped the team to:
+
+- write the 15 fictional spaceflight vignettes, based on medical problems
+  documented in flight or on NASA standards;
+- propose, case by case, the reference level of those vignettes from a
+  clinical guideline or a NASA standard;
+- search for sources and draft text.
+
+All medical content was reviewed by the team's physicians. Claudia Pinto and
+Milagros Villegas review the proposed reference levels separately, without
+communicating with each other and without seeing the application's answer,
+and either endorse them or propose another level. The label
+"Draft (AI-assisted)" in `data-kit/demo/reference-catalog.json` refers to this
+support. All rules remain drafts pending physician sign-off; no clinical
+validation is claimed. This use is also declared in the Space Apps submission
+form.
+
+## Background review and project analysis
+
+Yeremi Alexander Camacho Solis defined the structural analysis of the
+project: the problem, the target users, the MVP functionalities and the
+criteria used to compare KAWSAY with previous systems. Claude (Anthropic)
+assisted him on November 15, 2026 by searching for systems similar to the ones
+he described (NASA ExMC/CDSS, EveryWear, AMOS, HERMES and CMO-DA),
+organizing the comparison, and reviewing this repository to contrast the
+documentation with the implemented code. The conclusions, the MVP scope and
+the scalability decisions are the team's.
+
+Claude also assisted in implementing D.13 (official engine for the AI monitor:
+`motor/cli.mjs`, `motor/desde-generador.mjs`, changes to `llm-service/service.py`
+and `data-kit/demo/Monitor.tsx`, and their tests) and in drafting D.13 and D.14.
+These changes do not add or validate clinical rules. Claude also converted the
+team's evaluation protocol to Markdown and added the implementation-status and
+scalability parts in `docs/EVALUATION_PROTOCOL.md`; the protocol text is the
+team's.

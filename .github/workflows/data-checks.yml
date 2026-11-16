@@ -22,13 +22,15 @@ jobs:
         run: python -m unittest discover -s data-gen -v
       - name: Verify committed datasets and manifest
         run: python data-gen/generate.py --check
-      - name: Monitor behaviour
-        run: python -m unittest discover -s llm-service -v
       - uses: actions/setup-node@v4
         with:
           node-version: '24'
           cache: npm
           cache-dependency-path: data-kit/package-lock.json
+      - name: Official engine (motor/evaluar.mjs)
+        run: node --test "motor/*.test.mjs"
+      - name: Monitor behaviour (uses the official engine through Node)
+        run: python -m unittest discover -s llm-service -v
       - name: Install data module
         working-directory: data-kit
         run: npm ci

@@ -161,3 +161,32 @@ Cada decisión registra contexto, alternativas y consecuencias. **Propuesta** = 
   - Los paquetes en `fallidos/` necesitan que una persona los revise.
   - Los números (4 intentos, 5 s) son elección nuestra; no salen del contrato y pueden ajustarse con la API real.
 - **Fuente:** Respuesta de Bryan sobre los códigos de la API · `docs/CONTRATO_INGESTA_V1.md` (sección "Integración siguiente") · `simulator/transport.mjs` · `simulator/outbox.mjs` · pruebas `probar-transporte.mjs` y `probar-outbox.mjs`.
+
+## D.13 Motor oficial: `motor/evaluar.mjs`, también para el monitor IA
+- **Fecha:** 2026-11-15
+- **Responsable:** Equipo técnico
+- **Estado:** Propuesta · implementada en la rama `feat/motor-oficial-y-documentacion` (falta que el equipo la acepte)
+- **Contexto:** Había tres evaluadores distintos: `motor/evaluar.mjs` (historial de la API), `data-kit/simulator/practice-core/engine.ts` (simulador del navegador) y la regla estadística `evaluate()` de `llm-service/service.py` (desviación ≥ 3 frente al basal, marcada "solo demo"). Una misma muestra podía recibir avisos diferentes en el monitor y en el resto del sistema.
+- **Decisión:**
+  - El motor oficial es `motor/evaluar.mjs`: es el único conectado al flujo API → PostgreSQL → historial, usa los ID del catálogo (R01, R02, R03, R19) y consume el contrato v1. NEWS2 se calcula una sola vez, en `news2()` de `data-kit/simulator/mission.mjs`.
+  - `motor/cli.mjs` expone el motor a otros programas: recibe `{"observaciones": [...]}` (contrato v1) o `{"vitals": {...}}` (registro del generador, traducido por `motor/desde-generador.mjs`) y devuelve el resultado con la versión del motor.
+  - El monitor IA llama a ese CLI. Su nivel (`status`) es el del motor oficial. La desviación ≥ 3 frente al basal se conserva solo como **tendencia de demostración**, en una lista aparte (`trend_events`), y nunca cambia el nivel.
+  - Si el motor no responde (sin Node, error o más de 15 s), el monitor muestra `MOTOR_NO_DISPONIBLE`, conserva la muestra y no inventa un nivel.
+  - El LLM recibe el nivel ya calculado y solo redacta; no clasifica.
+  - `practice-core` queda solo para el simulador de práctica. Su principio de abstención (un dato faltante no puede producir un nivel menos urgente) se llevará al motor oficial cuando se agreguen las reglas de señales de alarma, que se evaluarán antes que R19.
+- **Alternativas consideradas:**
+  - Reescribir NEWS2 en Python dentro del monitor: duplicaría la lógica clínica y podría divergir.
+  - Usar `practice-core` como oficial: no está conectado a la API ni a SQL y sus reglas son de práctica (`D-...`), no las del catálogo.
+- **Consecuencias:** El astronauta, el médico y el monitor IA ven el mismo nivel, con la misma regla y fuente. El monitor necesita Node.js (ya requerido por el proyecto). Las reglas siguen en borrador, pendientes de revisión clínica.
+- **Fuente:** `motor/evaluar.mjs` · `motor/cli.mjs` · `motor/desde-generador.mjs` · `llm-service/service.py` · pruebas `motor/cli.test.mjs` y `llm-service/test_service.py`.
+
+## D.14 Grafo de conocimiento: pasa a V3
+- **Fecha:** 2026-11-15
+- **Responsable:** Equipo técnico
+- **Estado:** Propuesta
+- **Contexto:** El Instructivo incluía en V2 un grafo en JSON (`knowledge_graph.json`) para responder qué datos y relaciones usó el sistema en una explicación. El archivo no existe en `main`; `docs/OLLAMA.md` y `docs/simulador/AVANCE_INTEGRADO.md` ya lo dejaban fuera de la entrega.
+- **Decisión:** El grafo de conocimiento pasa a V3 (escalabilidad). En V2 la trazabilidad se cubre con lo que ya existe: cada evaluación devuelve la regla aplicada, su fuente, los datos que faltan y la versión del motor, y el Earth Packet reúne mediciones, reglas, acciones, revisiones y versiones de un episodio.
+- **Alternativas consideradas:**
+  - Construir el grafo en JSON ahora: duplicaría datos que ya están en PostgreSQL y en el Earth Packet, y quedaría desactualizado.
+- **Consecuencias:** El grafo se construirá cuando haya historial compartido en PostgreSQL, a partir de sus tablas y no de archivos separados. La presentación no debe mostrarlo como implementado.
+- **Fuente:** Instructivo del proyecto (secciones 2 y 3.7) · `docs/OLLAMA.md` · `docs/simulador/AVANCE_INTEGRADO.md`.

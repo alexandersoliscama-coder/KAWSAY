@@ -8,7 +8,7 @@ triaje validado ni sustituye el protocolo medico de una mision.
 | Parte | Funcion |
 | --- | --- |
 | Sensor, simulador o formulario | Proporcionar mediciones; un LLM no mide signos vitales |
-| Motor de reglas | Detectar condiciones de aviso al recibir una muestra, sin esperar a la IA |
+| Motor oficial (`motor/evaluar.mjs`, D.13) | Calcular el nivel con NEWS2 al recibir una muestra, sin esperar a la IA |
 | Programador Python | Solicitar reportes cada 300 segundos mientras este ejecutandose |
 | Ollama | Ejecutar un modelo local y redactar un resumen de los datos proporcionados |
 | Catalogo | Limitar las recomendaciones a acciones predefinidas; las obligatorias no se pueden quitar |
@@ -80,12 +80,15 @@ todos estos datos pertenecen a un reloj de simulacion y siempre se muestran como
 
 ## Reglas actuales y fallos
 
-El motor usa una regla estadistica SOLO PARA DEMO: desviacion absoluta de tres
-desviaciones estandar o mas respecto al basal generado, en HR, RR, SpO2 o temperatura.
-Tambien muestra un aviso cuando el campo `alert` es falso: ese campo describe el
-estado de alerta de la persona, no una alarma generada. Las reglas no equivalen a
-NEWS2, no tienen sensibilidad/especificidad demostrada y pueden producir falsos
-avisos. Un basal ausente produce datos insuficientes, nunca normalidad.
+El nivel lo calcula el motor oficial (`motor/evaluar.mjs`, D.13) mediante
+`node motor/cli.mjs`: NEWS2 y las reglas R01, R02, R03 y R19, todas en borrador.
+Si faltan datos, el nivel es `INSUFFICIENT DATA`: medir de nuevo y repetir la
+evaluacion. Si ninguna regla aplica, queda `SIN_CLASIFICAR`, que no equivale a
+autocuidado. Si el motor no responde (sin Node, error o mas de 15 segundos), el
+monitor muestra `MOTOR_NO_DISPONIBLE` y no inventa un nivel.
+La desviacion absoluta de tres desviaciones estandar o mas respecto al basal
+(HR, RR, SpO2 o temperatura) se muestra aparte como tendencia de demostracion;
+no cambia el nivel.
 
 Los avisos estan guardados antes de llamar a Ollama. Un error, timeout de 45 segundos,
 JSON invalido o recomendacion ajena al catalogo produce un reporte de respaldo;
@@ -117,11 +120,12 @@ global. No hay autenticacion ni cifrado de la aplicacion: usar solo datos fictic
    cinco minutos si ese es el requisito. Los datos de hoy son horarios.
 2. Conectar el autorreporte mediante el adaptador existente y un reloj de mision
    acordado, conservando su procedencia. El formulario actual sigue separado.
-3. Sustituir las reglas estadisticas de demostracion por reglas y protocolos
-   revisados por el responsable clinico. La deteccion urgente se ejecutaria en
-   cada lectura, no esperaria al reporte periodico.
+3. Revision clinica de las reglas del motor oficial y protocolos aprobados.
+   El nivel ya se calcula en cada lectura con el motor oficial (D.13), sin
+   esperar al reporte periodico.
 4. Base de conocimiento con documentos aprobados, version, fuente y referencias
-   recuperables para recomendaciones mas especificas. No hay RAG ni grafo implementado aqui.
+   recuperables para recomendaciones mas especificas. No hay RAG ni grafo implementado aqui;
+   el grafo de conocimiento pasa a V3 (D.14).
 5. Notificaciones PWA, reconocimiento y escalamiento de alertas: actualmente
    hay avisos en el panel abierto y en la consola, no avisos con la app cerrada.
 6. Para probar desde un celular: despliegue en la red local con acceso controlado
