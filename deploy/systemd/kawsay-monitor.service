@@ -1,0 +1,16 @@
+[Unit]
+Description=KAWSAY Monitor IA (Python + Ollama local) en 127.0.0.1:8765
+After=network.target ollama.service
+
+[Service]
+User=kawsay
+WorkingDirectory=/opt/kawsay/app
+# --timeout: segundos máximos de espera al LLM. En CPU sin GPU subirlo (ej. 180).
+ExecStart=/usr/bin/python3 llm-service/service.py --model qwen3:4b --timeout 120
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

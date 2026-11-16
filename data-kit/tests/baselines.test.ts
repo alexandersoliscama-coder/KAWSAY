@@ -27,17 +27,17 @@ describe("generated profiles and baseline migration",()=>{
   it("upgrades without changing existing telemetry, then skips applied migrations",async()=>{
     await store.ingest(individual,"MISSION-01");
     const before=await store.history("MISSION-01","MEMBER-01","simulation:SIM-01",50);
-    expect(await migrate()).toEqual(["002_baselines"]);
+    expect(await migrate()).toEqual(["002_baselines","003_triage"]);
     expect(await migrate()).toEqual([]);
     expect(await store.history("MISSION-01","MEMBER-01","simulation:SIM-01",50)).toEqual(before);
   });
-  it("applies both migrations to an empty engine and refuses unknown versions",async()=>{
+  it("applies every migration to an empty engine and refuses unknown versions",async()=>{
     const fresh=new PGlite();
     try{
-      expect(await applyMigrations(fresh,{advisoryLock:false})).toEqual(["001_ingestion","002_baselines"]);
+      expect(await applyMigrations(fresh,{advisoryLock:false})).toEqual(["001_ingestion","002_baselines","003_triage"]);
       await fresh.query("INSERT INTO kawsay.schema_migrations(version) VALUES('999_unknown')");
       await expect(applyMigrations(fresh,{advisoryLock:false})).rejects.toThrow("desconocidas");
-      expect((await fresh.query("SELECT count(*) AS n FROM kawsay.schema_migrations")).rows[0]).toEqual({n:3});
+      expect((await fresh.query("SELECT count(*) AS n FROM kawsay.schema_migrations")).rows[0]).toEqual({n:4});
     }finally{await fresh.close();}
   },30000);
   it("imports four distinct identities, keeps unknown histories and reuses identical snapshots",async()=>{
