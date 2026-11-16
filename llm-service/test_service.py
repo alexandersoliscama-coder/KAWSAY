@@ -1,9 +1,18 @@
 import json
 from pathlib import Path
+import shutil
 import tempfile
 import unittest
 from unittest.mock import patch
 from service import Monitor, demo_snapshot, evaluate, ollama_report
+
+HAS_NODE = shutil.which("node") is not None
+
+
+def fake_motor(nivel, regla=None, faltan=None, total=None):
+    """Stands in for motor/cli.mjs so these tests do not depend on Node."""
+    return lambda vitals: {"nivel": nivel, "regla": regla, "faltan": faltan or [],
+                           "news2": {"total": total}, "version": "test"}
 
 
 class MonitorTests(unittest.TestCase):
@@ -11,28 +20,47 @@ class MonitorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             def unavailable(*args):
                 raise TimeoutError()
-            monitor = Monitor(Path(tmp) / "test.db", reporter=unavailable)
-            sample = demo_snapshot("A", 19, 12)
-            sample["vitals"]["hr_z"] = 5
-            result = monitor.ingest(sample)
-            self.assertEqual(result["status"], "aviso_demo")
+            assessor = lambda snap: evaluate(snap, motor=fake_motor("PRIORITY", "R03", total=4))
+            monitor = Monitor(Path(tmp) / "test.db", reporter=unavailable, assessor=assessor)
+            result = monitor.ingest(demo_snapshot("A", 19, 12))
+            self.assertEqual(result["status"], "PRIORITY")
+            self.assertEqual(result["motor"], "motor/evaluar.mjs")
             self.assertIsNone(monitor.state()["items"][0]["report"])
             monitor.report_cycle()
             report = monitor.state()["items"][0]["report"]
             self.assertEqual(report["llmStatus"], "fallback")
-            self.assertEqual(report["assessment"]["status"], "aviso_demo")
+            self.assertEqual(report["assessment"]["status"], "PRIORITY")
             self.assertIn("review", report["recommendation_ids"])
 
-    def test_no_future_context_and_alert_is_alertness(self):
+    def test_level_comes_from_engine_and_trends_are_separate(self):
         sample = demo_snapshot("A", 0, 2)
         self.assertTrue(all((r["day"], r["hour"]) <= (0, 2) for r in sample["recentVitals"]))
         self.assertTrue(all(r["day"] <= 0 for r in sample["dailyContext"]))
-        sample["vitals"].update(hr_z=0, rr_z=0, spo2_z=0, temp_z=0, alert=True)
-        self.assertEqual(evaluate(sample)["status"], "sin_aviso_demo")
-        sample["vitals"]["hr_z"] = None
-        self.assertEqual(evaluate(sample)["status"], "datos_insuficientes")
-        sample["vitals"]["spo2_z"] = -4
-        self.assertEqual(evaluate(sample)["status"], "aviso_demo")
+        sample["vitals"].update(hr_z=5)
+        result = evaluate(sample, motor=fake_motor(None))
+        self.assertEqual(result["status"], "SIN_CLASIFICAR")  # A trend never sets the level.
+        self.assertEqual(result["events"], [])
+        self.assertTrue(result["trend_events"])
+        self.assertIn("verify", result["recommendation_ids"])
+        missing = evaluate(sample, motor=fake_motor("INSUFFICIENT DATA", "R19", ["spo2"]))
+        self.assertEqual(missing["status"], "INSUFFICIENT DATA")
+        self.assertIn("Medir de nuevo", missing["events"][0])
+        self.assertEqual(missing["recommendation_ids"][0], "update")
+        down = evaluate(sample, motor=lambda v: {"error": "motor_no_disponible"})
+        self.assertEqual(down["status"], "MOTOR_NO_DISPONIBLE")
+        self.assertTrue(down["events"])
+
+    @unittest.skipUnless(HAS_NODE, "Requiere Node.js para ejecutar el motor oficial")
+    def test_official_engine_end_to_end(self):
+        sample = demo_snapshot("A", 0, 2)
+        sample["vitals"].update(hr=135, rr=26, spo2=91, alert=True, on_oxygen=False)
+        result = evaluate(sample)
+        self.assertEqual(result["status"], "EMERGENCY")
+        self.assertEqual(result["regla"], "R01")
+        sample["vitals"]["sbp"] = None
+        result = evaluate(sample)
+        self.assertEqual(result["status"], "INSUFFICIENT DATA")
+        self.assertIn("sbp", result["faltan"])
 
     def test_invalid_output_is_rejected(self):
         class Response:
@@ -79,7 +107,8 @@ class MonitorTests(unittest.TestCase):
     def test_restart_recovers_and_new_sample_does_not_show_old_report(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "test.db"
-            monitor = Monitor(path, reporter=lambda *args: {"summary": "Demo", "recommendation_ids": []})
+            monitor = Monitor(path, reporter=lambda *args: {"summary": "Demo", "recommendation_ids": []},
+                              assessor=lambda snap: evaluate(snap, motor=fake_motor(None)))
             monitor.ingest(demo_snapshot("B", 0, 0))
             monitor.report_cycle()
             self.assertIsNotNone(Monitor(path).state()["items"][0]["report"])

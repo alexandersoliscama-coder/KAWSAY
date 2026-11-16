@@ -17,7 +17,7 @@ Actualizado: 14 de noviembre de 2026.
 La fuente está en https://docs.google.com/spreadsheets/d/1YEJ51SdlEczKco_K-ZaAv-mSCbTSxhe0/edit
 
 Las reglas y acciones terapéuticas permanecen en borrador pendiente de revisión médica. El catálogo no ejecuta un motor clínico de 34 reglas.
-El monitor mantiene sus reglas estadísticas de demostración. No se presenta un nivel clínico a partir del catálogo.
+El monitor IA muestra el nivel del motor oficial (`motor/evaluar.mjs`, D.13); las desviaciones frente al basal aparecen aparte como tendencias de demostración. El catálogo de 34 reglas sigue sin ejecutarse completo.
 El cambio de vista es una demostración sin autenticación ni autorización.
 
 La serie original no contiene presión diastólica. Se muestra como ausente y se exporta null.

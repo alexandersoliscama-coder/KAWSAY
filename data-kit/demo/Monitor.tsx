@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 
-interface Assessment { status: string; events: string[]; recommendation_ids: string[] }
+interface Assessment {
+  status: string; events: string[]; recommendation_ids: string[];
+  regla?: string | null; trend_events?: string[]; motor?: string;
+}
 interface State {
   intervalSeconds: number;
   catalog: Record<string, string>;
@@ -11,10 +14,14 @@ interface State {
       recommendation_ids: string[] };
   }[];
 }
+// Niveles del motor oficial (motor/evaluar.mjs, D.13). Reglas en borrador.
 const labels: Record<string, string> = {
-  aviso_demo: "Aviso de demostración", datos_insuficientes: "Datos insuficientes",
-  sin_aviso_demo: "Sin aviso de demostración (no equivale a estado normal)",
+  EMERGENCY: "Emergencia", PRIORITY: "Prioritario",
+  "INSUFFICIENT DATA": "Datos insuficientes: medir de nuevo y repetir la evaluación",
+  SIN_CLASIFICAR: "Sin regla aplicable (no equivale a autocuidado ni a estado normal)",
+  MOTOR_NO_DISPONIBLE: "Motor oficial no disponible",
 };
+const urgent = new Set(["EMERGENCY", "PRIORITY", "MOTOR_NO_DISPONIBLE"]);
 
 export function Monitor({ crewId, day, hour, onlySelected = false }: { crewId: string; day: number; hour: number; onlySelected?: boolean }) {
   const [state, setState] = useState<State | null>(null);
@@ -62,10 +69,15 @@ export function Monitor({ crewId, day, hour, onlySelected = false }: { crewId: s
     {state?.items.filter(item => !onlySelected || item.crewId === crewId).map(item => <article className="monitor-card" key={item.sampleId}>
       <h3>Tripulante {item.crewId} · muestra #{item.sampleId}</h3>
       <p>Simulación: día interno {item.simulationTime.day}, {item.simulationTime.hour}:00.</p>
-      <p role={item.assessment.status === "aviso_demo" ? "alert" : "status"}>
-        <strong>{labels[item.assessment.status] ?? item.assessment.status}</strong></p>
-      <p>Reglas estadísticas de prueba; pendientes de validación clínica.</p>
+      <p role={urgent.has(item.assessment.status) ? "alert" : "status"}>
+        <strong>{labels[item.assessment.status] ?? item.assessment.status}</strong>
+        {item.assessment.regla ? ` · regla ${item.assessment.regla}` : ""}</p>
+      <p>Nivel calculado por el motor oficial (motor/evaluar.mjs) con NEWS2; reglas en borrador pendientes de revisión clínica.</p>
       <ul>{item.assessment.events.map(event => <li key={event}>{event}</li>)}</ul>
+      {item.assessment.trend_events?.length ? <>
+        <p>Tendencias de demostración (no clínicas, no cambian el nivel):</p>
+        <ul>{item.assessment.trend_events.map(event => <li key={event}>{event}</li>)}</ul>
+      </> : null}
       {item.stale && <p role="status">Sin nueva muestra recibida en cinco minutos. No representa el estado actual.</p>}
       <p>Recibida: {new Date(item.receivedAt).toLocaleString("es-PE")} · hace {item.ageSeconds} s.</p>
       {item.report ? <>

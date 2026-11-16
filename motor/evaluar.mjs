@@ -9,8 +9,17 @@
 import { news2 } from "../data-kit/simulator/mission.mjs";
 import { desdeContrato } from "./desde-contrato.mjs";
 
+// Motor oficial de KAWSAY (D.13). Lo usan la API, el monitor IA (vía motor/cli.mjs)
+// y cualquier vista que muestre un nivel. Subir la versión al cambiar reglas.
+export const MOTOR_VERSION = "motor-oficial-0.1.0-borrador";
+
 export function evaluar(observaciones) {
   const { v, context } = desdeContrato(observaciones);
+  return evaluarVitales(v, context);
+}
+
+// Misma lógica de reglas, para entradas que ya vienen como {v, context}.
+export function evaluarVitales(v, context) {
   const r = news2(v, context);
   const base = { news2: r, borrador: true, fuente: r.source };
 
