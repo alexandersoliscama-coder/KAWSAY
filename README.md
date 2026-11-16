@@ -56,20 +56,35 @@ flowchart TB
   REC --> DB --> HIS
   LAB["pruebas.html<br/>laboratorio vía /demo-api"] --> REC
 
-  NEWS["Motor NEWS-2<br/>34 reglas en borrador"]
+  NEWS["motor/ · Motor NEWS-2<br/>R19 · R01 · R02 · R03 implementadas<br/>30 reglas aún en borrador"]
   UI["Interfaces astronauta / médico"]
   LLM["llm-service + Ollama<br/>prototipo aislado"]
 
-  DB -. pendiente .-> NEWS
+  HIS -- "historial por hora" --> NEWS
   NEWS -. pendiente .-> UI
   HIS -. pendiente .-> UI
   NEWS -. pendiente .-> LLM
 
   classDef pend stroke-dasharray: 5 5
-  class NEWS,UI,LLM pend
+  class UI,LLM pend
 ```
 
 Línea continua: implementado y probado el 15/11 en una laptop. Línea punteada: pendiente.
+
+## Motor NEWS-2 (borrador)
+
+`motor/` lee el historial de un tripulante desde la API, agrupa las observaciones por hora
+y calcula NEWS-2 con `news2()` de `data-kit/simulator/mission.mjs`. Reglas implementadas:
+R19 (datos insuficientes), R01 (total ≥ 7, EMERGENCY), R02 (total ≥ 5, PRIORITY) y
+R03 (algún parámetro con 3 puntos, PRIORITY). Un total de 0–4 queda sin nivel hasta la
+decisión clínica del equipo. Resultado en borrador: no está validado clínicamente.
+
+Con la API en marcha (`npm run api:embedded` desde `data-kit/`), desde la raíz del repositorio:
+
+```bash
+node --env-file=data-kit/.env motor/demo.mjs GEN-MEMBER-A 80
+node --test motor/desde-contrato.test.mjs motor/evaluar.test.mjs motor/historial.test.mjs
+```
 
 ## Branch workflow
 - Current delivery branch: `feat/contrato-api-sql`.

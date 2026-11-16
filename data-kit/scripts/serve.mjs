@@ -27,7 +27,7 @@ const server = createServer(async (request, response) => {
         response.end(await upstream.text());
       } catch {
         response.writeHead(503, { "Content-Type": "application/json; charset=utf-8" });
-        response.end(JSON.stringify({ error: "Servicio de monitoreo desconectado. Inicia python llm-service/service.py" }));
+        response.end(JSON.stringify({ error: "Monitoring service disconnected. Start python llm-service/service.py" }));
       }
       return;
     }

@@ -19,6 +19,15 @@ for (const name of ["manifest.webmanifest", "icon.svg"]) {
 await writeFile(new URL("index.html", output), '<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#102e3b"><link rel="manifest" href="/manifest.webmanifest"><title>KAWSAY · Salud en misión</title><link rel="stylesheet" href="/app.css"></head><body><div id="root"></div><script type="module" src="/app.js"></script></body></html>');
 // Keep the existing data/LLM dashboard accessible while serving the approved UI.
 await copyFile(new URL("index.html", output), new URL("monitor.html", output));
+// Motor NEWS2 (borrador) para el navegador: misma función evaluar() que usan las pruebas de motor/.
+// Solo se sustituye engine-adapter.mjs (usa módulos de Node y no interviene en news2/evaluar).
+const sinAdaptadorNode = { name: "sin-adaptador-node", setup(b) {
+  b.onResolve({ filter: /engine-adapter\.mjs$/ }, () => ({ path: "engine-adapter-stub", namespace: "stub" }));
+  b.onLoad({ filter: /.*/, namespace: "stub" }, () => ({ contents: 'export const evaluate=()=>{throw new Error("No disponible en el navegador")};', loader: "js" }));
+} };
+await build({ entryPoints: [fileURLToPath(new URL("../../motor/navegador.mjs", import.meta.url))],
+  bundle: true, minify: true, target: "es2022", format: "iife", globalName: "KAWSAY_ENGINE", platform: "browser",
+  plugins: [sinAdaptadorNode], outfile: fileURLToPath(new URL("engine.js", output)) });
 await copyFile(new URL("../../KAWSAY-interfaces.html", import.meta.url), new URL("index.html", output));
 await copyFile(new URL("../../KAWSAY-interfaces.html", import.meta.url), new URL("KAWSAY-interfaces.html", output));
 const hash = createHash("sha256");

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { parseIngestion } from "../src/ingestion";
 import type { IngestionMessage } from "../src/ingestion";
+import { parseTriage } from "../src/triage";
 
 export interface DbResult { rows: Record<string, any>[]; rowCount?: number | null }
 export interface DbClient { query(sql: string, values?: any[]): Promise<DbResult>; release(): void }
@@ -17,6 +18,7 @@ export function canonical(value: unknown): string {
 const hash=(value: unknown)=>createHash("sha256").update(canonical(value)).digest("hex");
 export const clockKey=(p: IngestionMessage)=>p.clock.mode==="simulation" ?
   "simulation:"+p.clock.simulation_run_id : (p.synthetic?"synthetic:real-clock":"real");
+export interface TriageReceipt { triage_id: number; duplicate: boolean; recorded_at: string }
 export interface IngestReceipt { message_id: string; duplicate: boolean; received_at: string; inserted: number; reused: number }
 
 export class ObservationStore {
@@ -114,6 +116,54 @@ export class ObservationStore {
       return (await client.query(`SELECT observation_id,crew_id,crew_member_id,user_id,clock_key,measured_at,status_at,received_at,payload
         FROM kawsay.observations WHERE mission_id=$1 AND crew_member_id=$2 AND clock_key=$3
         ORDER BY status_at DESC,observation_id LIMIT $4`,[mission,member,clock,limit])).rows;
+    } finally {client.release();}
+  }
+  /** Saves one admission triage (first patient table). Same request_id + same content = same receipt. */
+  async saveTriage(input: unknown, mission: string): Promise<TriageReceipt> {
+    let t: ReturnType<typeof parseTriage>;
+    try {t=parseTriage(input);} catch(e){throw new ApiError(422,"invalid_payload",(e as Error).message);}
+    const contentHash=hash(t), client=await this.db.connect();
+    try {
+      await client.query("BEGIN");
+      const v=t.vitals;
+      const created=await client.query(`INSERT INTO kawsay.triage_records
+        (mission_id,request_id,content_hash,synthetic,patient_id,full_name,age,sex,
+         no_known_history,history,no_regular_medication,medications,no_known_adverse_reactions,adverse_reactions,
+         hr,rr,spo2,temp,sbp,dbp)
+        VALUES ($1,$2,$3,true,$4,$5,$6,$7,$8,$9::jsonb,$10,$11::jsonb,$12,$13::jsonb,$14,$15,$16,$17,$18,$19)
+        ON CONFLICT (mission_id,request_id) DO NOTHING RETURNING triage_id,recorded_at`,[
+        mission,t.request_id,contentHash,t.patient_id,t.full_name,t.age,t.sex,
+        t.no_known_history,JSON.stringify(t.history),t.no_regular_medication,JSON.stringify(t.medications),
+        t.no_known_adverse_reactions,JSON.stringify(t.adverse_reactions),v.hr,v.rr,v.spo2,v.temp,v.sbp,v.dbp]);
+      if(!created.rows.length){
+        const old=await client.query("SELECT triage_id,content_hash,recorded_at FROM kawsay.triage_records WHERE mission_id=$1 AND request_id=$2",[mission,t.request_id]);
+        if(old.rows[0]?.content_hash!==contentHash)throw new ApiError(409,"request_conflict","Ese request_id ya tiene otro contenido");
+        await client.query("COMMIT");
+        return {triage_id:Number(old.rows[0].triage_id),duplicate:true,recorded_at:new Date(old.rows[0].recorded_at).toISOString()};
+      }
+      await client.query("COMMIT");
+      return {triage_id:Number(created.rows[0].triage_id),duplicate:false,recorded_at:new Date(created.rows[0].recorded_at).toISOString()};
+    } catch(e) {
+      await client.query("ROLLBACK").catch(()=>{});
+      throw e;
+    } finally {client.release();}
+  }
+  private static readonly TRIAGE_COLUMNS=`triage_id,patient_id,full_name,age,sex,no_known_history,history,no_regular_medication,
+    medications,no_known_adverse_reactions,adverse_reactions,hr,rr,spo2,temp::float8 AS temp,sbp,dbp,recorded_at`;
+  async listTriage(mission: string, limit: number, patient?: string) {
+    const client=await this.db.connect();
+    try {
+      return (await client.query(`SELECT ${ObservationStore.TRIAGE_COLUMNS} FROM kawsay.triage_records
+        WHERE mission_id=$1 AND ($2::text IS NULL OR patient_id=$2) ORDER BY recorded_at DESC,triage_id DESC LIMIT $3`,
+        [mission,patient??null,limit])).rows;
+    } finally {client.release();}
+  }
+  async getTriage(mission: string, id: number) {
+    const client=await this.db.connect();
+    try {
+      const rows=(await client.query(`SELECT ${ObservationStore.TRIAGE_COLUMNS} FROM kawsay.triage_records WHERE mission_id=$1 AND triage_id=$2`,[mission,id])).rows;
+      if(!rows.length)throw new ApiError(404,"triage_not_found","Triaje no encontrado");
+      return rows[0];
     } finally {client.release();}
   }
 }

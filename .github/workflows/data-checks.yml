@@ -1,7 +1,7 @@
 name: Data and generator checks
 on:
   push:
-    branches: ['Datos-|-GENERADOR']
+    branches: ['Datos-|-GENERADOR', 'main']
   pull_request:
     branches: ['Datos-|-GENERADOR', 'Integración', 'main']
   workflow_dispatch:
@@ -34,6 +34,8 @@ jobs:
       - name: Install data module
         working-directory: data-kit
         run: npm ci
+      - name: NEWS2 engine behaviour
+        run: node --test motor/desde-contrato.test.mjs motor/evaluar.test.mjs motor/historial.test.mjs
       - name: Test check-in and integration
         working-directory: data-kit
         run: npm test

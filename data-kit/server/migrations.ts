@@ -5,7 +5,7 @@ interface MigrationClient {
   query(sql:string,values?:any[]):Promise<DbResult>;
   exec?(sql:string):Promise<unknown>;
 }
-export const MIGRATIONS=["001_ingestion","002_baselines"] as const;
+export const MIGRATIONS=["001_ingestion","002_baselines","003_triage"] as const;
 /** Runs all pending migrations atomically. Existing histories are never reseeded or removed. */
 export async function applyMigrations(client:MigrationClient, options:{advisoryLock?:boolean;directory?:string}={}) {
   const directory=options.directory??fileURLToPath(new URL("../../database/",import.meta.url));
@@ -18,6 +18,7 @@ export async function applyMigrations(client:MigrationClient, options:{advisoryL
     const versions=table.rows[0].name?(await client.query("SELECT version FROM kawsay.schema_migrations")).rows.map(r=>String(r.version)):[];
     if(versions.some(v=>!MIGRATIONS.includes(v as typeof MIGRATIONS[number])))throw new Error("Esquema con versiones desconocidas; no se modifica");
     if(versions.includes("002_baselines")&&!versions.includes("001_ingestion"))throw new Error("Historial de migraciones inconsistente");
+    if(versions.includes("003_triage")&&!versions.includes("002_baselines"))throw new Error("Historial de migraciones inconsistente");
     for(const version of MIGRATIONS){
       if(versions.includes(version))continue;
       const sql=await readFile(resolve(directory,version+".sql"),"utf8");

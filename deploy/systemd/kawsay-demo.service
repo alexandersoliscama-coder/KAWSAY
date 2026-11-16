@@ -1,0 +1,16 @@
+[Unit]
+Description=KAWSAY demo (interfaz + API SQL embebida) en 127.0.0.1:4180
+After=network.target kawsay-monitor.service
+
+[Service]
+User=kawsay
+WorkingDirectory=/opt/kawsay/app/data-kit
+Environment=KAWSAY_MONITOR_URL=http://127.0.0.1:8765
+ExecStart=/usr/bin/node .api-dist/demo.mjs
+Restart=always
+RestartSec=3
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
